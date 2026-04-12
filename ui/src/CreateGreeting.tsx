@@ -1,16 +1,11 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { Button, Container } from "@radix-ui/themes";
+import { Box, Heading, Text } from "@radix-ui/themes";
 import { useDAppKit } from "@mysten/dapp-kit-react";
 import { useMutation } from "@tanstack/react-query";
 import { useNetworkVariable } from "./networkConfig";
 import { useState } from "react";
-import { ClipLoader } from "react-spinners";
 
-export function CreateGreeting({
-  onCreated,
-}: {
-  onCreated: (id: string) => void;
-}) {
+export function CreateGreeting({ onCreated }: { onCreated: (id: string) => void }) {
   const helloWorldPackageId = useNetworkVariable("helloWorldPackageId");
   const dAppKit = useDAppKit();
 
@@ -19,13 +14,11 @@ export function CreateGreeting({
       dAppKit.signAndExecuteTransaction({ transaction: tx }),
   });
 
-  const [waitingForTxn, setWaitingForTxn] = useState(false);
+  const [waiting, setWaiting] = useState(false);
 
   const create = () => {
-    setWaitingForTxn(true);
-
+    setWaiting(true);
     const tx = new Transaction();
-
     tx.moveCall({
       arguments: [],
       target: `${helloWorldPackageId}::greeting::new`,
@@ -39,26 +32,37 @@ export function CreateGreeting({
             (obj) => obj.idOperation === "Created",
           );
           const objectId = created[0]?.objectId;
-          if (objectId) {
-            onCreated(objectId);
-          }
+          if (objectId) onCreated(objectId);
         }
-        setWaitingForTxn(false);
+        setWaiting(false);
       },
+      onError: () => setWaiting(false),
     });
   };
 
   return (
-    <Container>
-      <Button
-        size="3"
-        onClick={() => {
-          create();
-        }}
-        disabled={waitingForTxn}
-      >
-        {waitingForTxn ? <ClipLoader size={20} /> : "Create Greeting"}
-      </Button>
-    </Container>
+    <Box className="card">
+      <div className="card-header">
+        <Heading size="5" weight="bold" className="card-title">Create Greeting</Heading>
+        <Text size="2" color="gray" className="card-subtitle">
+          Store a message on Sui Testnet
+        </Text>
+      </div>
+
+      <button className="btn btn-primary" onClick={create} disabled={waiting}>
+        {waiting ? (
+          <>
+            <span className="spinner"></span>
+            Creating...
+          </>
+        ) : (
+          "Create Greeting"
+        )}
+      </button>
+
+      <div className="divider">
+        <span>TESTNET</span>
+      </div>
+    </Box>
   );
 }

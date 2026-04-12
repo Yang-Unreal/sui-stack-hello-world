@@ -1,13 +1,9 @@
-import {
-  useDAppKit,
-  useCurrentClient,
-} from "@mysten/dapp-kit-react";
+import { useDAppKit, useCurrentClient } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
-import { Button, Flex, Heading, Link, Text, TextField } from "@radix-ui/themes";
+import { Box, Flex, Text } from "@radix-ui/themes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNetworkVariable } from "./networkConfig";
 import { useState } from "react";
-import ClipLoader from "react-spinners/ClipLoader";
 
 export function Greeting({ id }: { id: string }) {
   const helloWorldPackageId = useNetworkVariable("helloWorldPackageId");
@@ -27,13 +23,13 @@ export function Greeting({ id }: { id: string }) {
   });
 
   const [newText, setNewText] = useState("");
-  const [waitingForTxn, setWaitingForTxn] = useState(false);
+  const [waiting, setWaiting] = useState(false);
 
-  const executeMoveCall = () => {
-    setWaitingForTxn(true);
+  const update = () => {
+    if (!newText) return;
+    setWaiting(true);
 
     const tx = new Transaction();
-
     tx.moveCall({
       target: `${helloWorldPackageId}::greeting::update_text`,
       arguments: [tx.object(id), tx.pure.string(newText)],
@@ -42,48 +38,76 @@ export function Greeting({ id }: { id: string }) {
     signAndExecute(tx, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["getObject", id] });
-        setWaitingForTxn(false);
+        setWaiting(false);
         setNewText("");
       },
+      onError: () => setWaiting(false),
     });
   };
 
-  if (isPending) return <Text>Loading...</Text>;
+  if (isPending) return (
+    <Box className="card">
+      <Flex align="center" justify="center" style={{ padding: '3rem 0' }}>
+        <div className="spinner"></div>
+      </Flex>
+    </Box>
+  );
 
-  if (error) return <Text>Error: {error.message}</Text>;
-
-  if (!data) return <Text>Not found</Text>;
+  if (error) return (
+    <Box className="card">
+      <p className="error-text">Error: {error.message}</p>
+    </Box>
+  );
+  if (!data) return (
+    <Box className="card">
+      <p className="error-text">Not found</p>
+    </Box>
+  );
 
   const fields = data.object.json as { text: string } | null;
 
   return (
-    <>
-      <Heading size="3">
-        Greeting{" "}
-        <Link
-          href={`https://testnet.suivision.xyz/object/${id}`}
-          target="_blank"
+    <Box className="card">
+      <div className="success-badge">
+        <span className="network-dot"></span>
+        ON-CHAIN
+      </div>
+      
+      <div className="field">
+        <span className="field-label">Message</span>
+        <p className="greeting-text">{fields?.text || "(empty)"}</p>
+      </div>
+      
+      <div className="field">
+        <span className="field-label">Object ID</span>
+        <p className="object-id">{id}</p>
+      </div>
+      
+      <div className="field">
+        <span className="field-label">Update Message</span>
+        <input
+          className="input"
+          placeholder="Enter new message..."
+          value={newText}
+          onChange={(e) => setNewText(e.target.value)}
+          disabled={waiting}
+        />
+        <button
+          className="btn btn-primary"
+          style={{ marginTop: '0.75rem' }}
+          onClick={update}
+          disabled={waiting || !newText}
         >
-          {id}
-        </Link>
-      </Heading>
-
-      <Flex direction="column" gap="2">
-        <Text>Text: {fields?.text}</Text>
-        <Flex direction="row" gap="2">
-          <TextField.Root
-            placeholder={fields?.text}
-            value={newText}
-            onChange={(e) => {
-              setNewText(e.target.value);
-            }}
-            disabled={waitingForTxn}
-          />
-          <Button onClick={() => executeMoveCall()} disabled={waitingForTxn}>
-            {waitingForTxn ? <ClipLoader size={20} /> : "Update"}
-          </Button>
-        </Flex>
-      </Flex>
-    </>
+          {waiting ? (
+            <>
+              <span className="spinner"></span>
+              Updating...
+            </>
+          ) : (
+            "Update"
+          )}
+        </button>
+      </div>
+    </Box>
   );
 }
