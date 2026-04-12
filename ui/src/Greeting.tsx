@@ -1,12 +1,13 @@
-import { useDAppKit, useCurrentClient } from "@mysten/dapp-kit-react";
-import { Transaction } from "@mysten/sui/transactions";
-import { Box, Flex, Text } from "@radix-ui/themes";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNetworkVariable } from "./networkConfig";
-import { useState } from "react";
+import { useCurrentClient, useDAppKit } from '@mysten/dapp-kit-react';
+import { Transaction } from '@mysten/sui/transactions';
+import { Box, Flex } from '@radix-ui/themes';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useNetworkVariable } from './networkConfig';
 
 export function Greeting({ id }: { id: string }) {
-  const helloWorldPackageId = useNetworkVariable("helloWorldPackageId");
+  const helloWorldPackageId = useNetworkVariable('helloWorldPackageId');
   const client = useCurrentClient();
   const dAppKit = useDAppKit();
   const queryClient = useQueryClient();
@@ -17,12 +18,12 @@ export function Greeting({ id }: { id: string }) {
   });
 
   const { data, isPending, error } = useQuery({
-    queryKey: ["getObject", id],
+    queryKey: ['getObject', id],
     queryFn: () =>
       client.core.getObject({ objectId: id, include: { json: true } }),
   });
 
-  const [newText, setNewText] = useState("");
+  const [newText, setNewText] = useState('');
   const [waiting, setWaiting] = useState(false);
 
   const update = () => {
@@ -37,32 +38,35 @@ export function Greeting({ id }: { id: string }) {
 
     signAndExecute(tx, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["getObject", id] });
+        queryClient.invalidateQueries({ queryKey: ['getObject', id] });
         setWaiting(false);
-        setNewText("");
+        setNewText('');
       },
       onError: () => setWaiting(false),
     });
   };
 
-  if (isPending) return (
-    <Box className="card">
-      <Flex align="center" justify="center" style={{ padding: '3rem 0' }}>
-        <div className="spinner"></div>
-      </Flex>
-    </Box>
-  );
+  if (isPending)
+    return (
+      <Box className="card">
+        <Flex align="center" justify="center" style={{ padding: '3rem 0' }}>
+          <div className="spinner"></div>
+        </Flex>
+      </Box>
+    );
 
-  if (error) return (
-    <Box className="card">
-      <p className="error-text">Error: {error.message}</p>
-    </Box>
-  );
-  if (!data) return (
-    <Box className="card">
-      <p className="error-text">Not found</p>
-    </Box>
-  );
+  if (error)
+    return (
+      <Box className="card">
+        <p className="error-text">Error: {error.message}</p>
+      </Box>
+    );
+  if (!data)
+    return (
+      <Box className="card">
+        <p className="error-text">Not found</p>
+      </Box>
+    );
 
   const fields = data.object.json as { text: string } | null;
 
@@ -72,17 +76,17 @@ export function Greeting({ id }: { id: string }) {
         <span className="network-dot"></span>
         ON-CHAIN
       </div>
-      
+
       <div className="field">
         <span className="field-label">Message</span>
-        <p className="greeting-text">{fields?.text || "(empty)"}</p>
+        <p className="greeting-text">{fields?.text || '(empty)'}</p>
       </div>
-      
+
       <div className="field">
         <span className="field-label">Object ID</span>
         <p className="object-id">{id}</p>
       </div>
-      
+
       <div className="field">
         <span className="field-label">Update Message</span>
         <input
@@ -93,6 +97,7 @@ export function Greeting({ id }: { id: string }) {
           disabled={waiting}
         />
         <button
+          type="button"
           className="btn btn-primary"
           style={{ marginTop: '0.75rem' }}
           onClick={update}
@@ -104,7 +109,7 @@ export function Greeting({ id }: { id: string }) {
               Updating...
             </>
           ) : (
-            "Update"
+            'Update'
           )}
         </button>
       </div>

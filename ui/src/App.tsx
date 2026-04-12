@@ -1,14 +1,17 @@
-import { ConnectButton, useCurrentAccount, useDAppKit, useWalletConnection } from "@mysten/dapp-kit-react";
-import { isValidSuiObjectId } from "@mysten/sui/utils";
-import { Box, Container } from "@radix-ui/themes";
-import { useState, useEffect, useRef } from "react";
+import {
+  ConnectButton,
+  useCurrentAccount,
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
+import { isValidSuiObjectId } from '@mysten/sui/utils';
+import { Box, Container } from '@radix-ui/themes';
+import { useEffect, useRef, useState } from 'react';
+import { CreateGreeting } from './CreateGreeting';
 import { Greeting } from './Greeting';
-import { CreateGreeting } from "./CreateGreeting";
 
 function WalletButton() {
   const currentAccount = useCurrentAccount();
   const dAppKit = useDAppKit();
-  const { connect } = useWalletConnection({ dAppKit });
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -18,24 +21,27 @@ function WalletButton() {
         setShowMenu(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   if (currentAccount) {
     return (
       <div className="wallet-menu" ref={menuRef}>
         <button
+          type="button"
           className="wallet-btn connected"
           onClick={() => setShowMenu(!showMenu)}
         >
           <span className="wallet-dot"></span>
-          {currentAccount.address.slice(0, 6)}...{currentAccount.address.slice(-4)}
+          {currentAccount.address.slice(0, 6)}...
+          {currentAccount.address.slice(-4)}
           <span className="wallet-arrow">▼</span>
         </button>
         {showMenu && (
           <div className="wallet-dropdown">
             <button
+              type="button"
               className="wallet-dropdown-item disconnect"
               onClick={() => {
                 dAppKit.disconnectWallet();
@@ -50,9 +56,7 @@ function WalletButton() {
     );
   }
 
-  return (
-    <ConnectButton />
-  );
+  return <ConnectButton />;
 }
 
 function App() {
@@ -69,17 +73,23 @@ function App() {
         setGreetingId(hash);
       }
     };
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   return (
     <Box className="app">
       <div className="bg" />
-      
+
       <nav className="navbar">
         <Container size="4">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <h1 style={{ fontSize: '1.125rem' }}>Sui Greeting</h1>
             <WalletButton />
           </div>
@@ -102,7 +112,9 @@ function App() {
           <div className="card">
             <div className="card-header">
               <h2 className="card-title">Welcome</h2>
-              <p className="card-subtitle">Connect your wallet to get started</p>
+              <p className="card-subtitle">
+                Connect your wallet to get started
+              </p>
             </div>
             <div className="wallet-prompt">
               <p>Store a greeting message on the Sui blockchain</p>

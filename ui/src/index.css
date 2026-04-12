@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap");
 
 :root {
   --bg: #0a0a0b;
@@ -26,13 +26,18 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Outfit", sans-serif;
   font-weight: 600;
   margin: 0;
 }
@@ -46,9 +51,17 @@ h1, h2, h3, h4, h5, h6 {
 .bg {
   position: fixed;
   inset: 0;
-  background: 
-    radial-gradient(ellipse 100% 80% at 50% 120%, rgba(232, 197, 71, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(232, 197, 71, 0.05) 0%, transparent 40%),
+  background:
+    radial-gradient(
+      ellipse 100% 80% at 50% 120%,
+      rgba(232, 197, 71, 0.03) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 20% 0%,
+      rgba(232, 197, 71, 0.05) 0%,
+      transparent 40%
+    ),
     linear-gradient(180deg, var(--bg) 0%, #0d0d0f 100%);
   z-index: -1;
 }
@@ -77,8 +90,14 @@ main {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-header {
@@ -128,7 +147,7 @@ main {
 }
 
 .object-id {
-  font-family: 'DM Mono', monospace;
+  font-family: "DM Mono", monospace;
   font-size: 0.75rem;
   color: var(--text-muted);
   word-break: break-all;
@@ -149,7 +168,9 @@ main {
   font-size: 0.9375rem;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .input:focus {
@@ -217,7 +238,7 @@ main {
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background: var(--border);
@@ -246,8 +267,13 @@ main {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .spinner {
@@ -260,7 +286,9 @@ main {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-text {
@@ -292,7 +320,7 @@ main {
   color: var(--text);
   font-size: 0.8125rem;
   font-weight: 500;
-  font-family: 'DM Mono', monospace;
+  font-family: "DM Mono", monospace;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;

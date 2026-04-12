@@ -1,12 +1,17 @@
-import { Transaction } from "@mysten/sui/transactions";
-import { Box, Heading, Text } from "@radix-ui/themes";
-import { useDAppKit } from "@mysten/dapp-kit-react";
-import { useMutation } from "@tanstack/react-query";
-import { useNetworkVariable } from "./networkConfig";
-import { useState } from "react";
+import { useDAppKit } from '@mysten/dapp-kit-react';
+import { Transaction } from '@mysten/sui/transactions';
+import { Box, Heading, Text } from '@radix-ui/themes';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 
-export function CreateGreeting({ onCreated }: { onCreated: (id: string) => void }) {
-  const helloWorldPackageId = useNetworkVariable("helloWorldPackageId");
+import { useNetworkVariable } from './networkConfig';
+
+export function CreateGreeting({
+  onCreated,
+}: {
+  onCreated: (id: string) => void;
+}) {
+  const helloWorldPackageId = useNetworkVariable('helloWorldPackageId');
   const dAppKit = useDAppKit();
 
   const { mutate: signAndExecute } = useMutation({
@@ -29,7 +34,7 @@ export function CreateGreeting({ onCreated }: { onCreated: (id: string) => void 
         const txData = result.Transaction ?? result.FailedTransaction;
         if (txData?.effects) {
           const created = txData.effects.changedObjects.filter(
-            (obj) => obj.idOperation === "Created",
+            (obj) => obj.idOperation === 'Created'
           );
           const objectId = created[0]?.objectId;
           if (objectId) onCreated(objectId);
@@ -43,20 +48,27 @@ export function CreateGreeting({ onCreated }: { onCreated: (id: string) => void 
   return (
     <Box className="card">
       <div className="card-header">
-        <Heading size="5" weight="bold" className="card-title">Create Greeting</Heading>
+        <Heading size="5" weight="bold" className="card-title">
+          Create Greeting
+        </Heading>
         <Text size="2" color="gray" className="card-subtitle">
           Store a message on Sui Testnet
         </Text>
       </div>
 
-      <button className="btn btn-primary" onClick={create} disabled={waiting}>
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={create}
+        disabled={waiting}
+      >
         {waiting ? (
           <>
             <span className="spinner"></span>
             Creating...
           </>
         ) : (
-          "Create Greeting"
+          'Create Greeting'
         )}
       </button>
 
