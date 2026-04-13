@@ -383,3 +383,160 @@ main {
 .wallet-dropdown-item.disconnect {
   color: var(--error);
 }
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 900px;
+}
+
+.note-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.note-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.note-card.add-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  border-style: dashed;
+  background: transparent;
+}
+
+.note-card.add-note:hover {
+  border-color: var(--accent);
+  background: rgba(232, 197, 71, 0.05);
+}
+
+.add-icon {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.note-card.add-note:hover .add-icon {
+  color: var(--accent);
+}
+
+.note-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-preview {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.note-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.notes-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.back-btn:hover {
+  color: var(--text);
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+  background: var(--surface-elevated);
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.button-group .btn {
+  flex: 1;
+}
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.note-title-display {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.note-content {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 2rem;
+}

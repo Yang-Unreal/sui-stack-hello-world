@@ -2,9 +2,10 @@
   "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "always"
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
   },
-  "biome.biomePath": "C:/Users/Y/.bun/install/global/node_modules/@biomejs/cli-win32-x64/biome.exe",
+  "biome BiomePath": "C:/Users/Y/.bun/install/global/node_modules/@biomejs/cli-win32-x64/biome.exe",
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },

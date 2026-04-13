@@ -1,13 +1,24 @@
 import {
   ConnectButton,
   useCurrentAccount,
+  useCurrentClient,
   useDAppKit,
 } from '@mysten/dapp-kit-react';
-import { isValidSuiObjectId } from '@mysten/sui/utils';
-import { Box, Container } from '@radix-ui/themes';
+import { Box, Container, Heading, Text } from '@radix-ui/themes';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { CreateGreeting } from './CreateGreeting';
-import { Greeting } from './Greeting';
+import { CreateNote } from './CreateNote';
+import { NoteCard } from './NoteCard';
+import { useNetworkVariable } from './networkConfig';
+
+interface NoteData {
+  id: string;
+  owner: string;
+  title: string;
+  content: string;
+  created_at: number;
+  updated_at: number;
+}
 
 function WalletButton() {
   const currentAccount = useCurrentAccount();
@@ -61,21 +72,19 @@ function WalletButton() {
 
 function App() {
   const currentAccount = useCurrentAccount();
-  const [greetingId, setGreetingId] = useState<string | null>(() => {
-    const hash = window.location.hash.slice(1);
-    return isValidSuiObjectId(hash) ? hash : null;
-  });
+  const [showCreate, setShowCreate] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<NoteData | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1);
-      if (isValidSuiObjectId(hash)) {
-        setGreetingId(hash);
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  const handleNoteCreated = () => {
+    setShowCreate(false);
+    setRefreshKey((k) => k + 1);
+  };
+
+  const handleNoteDeleted = () => {
+    setSelectedNote(null);
+    setRefreshKey((k) => k + 1);
+  };
 
   return (
     <Box className="app">
@@ -90,7 +99,7 @@ function App() {
               alignItems: 'center',
             }}
           >
-            <h1 style={{ fontSize: '1.125rem' }}>Sui Greeting</h1>
+            <h1 style={{ fontSize: '1.125rem' }}>Sui Notes</h1>
             <WalletButton />
           </div>
         </Container>
@@ -98,32 +107,141 @@ function App() {
 
       <main>
         {currentAccount ? (
-          greetingId ? (
-            <Greeting id={greetingId} />
-          ) : (
-            <CreateGreeting
-              onCreated={(id) => {
-                window.location.hash = id;
-                setGreetingId(id);
-              }}
+          showCreate ? (
+            <CreateNote
+              onCreated={handleNoteCreated}
+              onCancel={() => setShowCreate(false)}
             />
+          ) : selectedNote ? (
+            <NoteCard
+              note={selectedNote}
+              onBack={() => setSelectedNote(null)}
+              onDeleted={handleNoteDeleted}
+              refreshKey={refreshKey}
+            />
+          ) : (
+            <div className="notes-grid">
+              <button
+                type="button"
+                className="note-card add-note"
+                onClick={() => setShowCreate(true)}
+              >
+                <span className="add-icon">+</span>
+                <span>New Note</span>
+              </button>
+              <NoteList
+                address={currentAccount.address}
+                refreshKey={refreshKey}
+                onSelect={setSelectedNote}
+              />
+            </div>
           )
         ) : (
           <div className="card">
             <div className="card-header">
-              <h2 className="card-title">Welcome</h2>
-              <p className="card-subtitle">
-                Connect your wallet to get started
-              </p>
+              <Heading size="5" weight="bold" className="card-title">
+                Sui Notes
+              </Heading>
+              <Text size="2" color="gray" className="card-subtitle">
+                Your private notes on the blockchain
+              </Text>
             </div>
             <div className="wallet-prompt">
-              <p>Store a greeting message on the Sui blockchain</p>
+              <p>Store your notes securely on Sui Testnet</p>
               <WalletButton />
             </div>
           </div>
         )}
       </main>
     </Box>
+  );
+}
+
+function NoteList({
+  address,
+  refreshKey,
+  onSelect,
+}: {
+  address: string;
+  refreshKey: number;
+  onSelect: (note: NoteData) => void;
+}) {
+  const client = useCurrentClient();
+  const notePackageId = useNetworkVariable('notePackageId');
+  const {
+    data: notes,
+    isPending,
+    error,
+  } = useQuery({
+    queryKey: ['getOwnedNotes', address, refreshKey],
+    queryFn: async () => {
+      const noteType = `${notePackageId}::greeting::Note`;
+
+      const result = await client.getOwnedObjects({
+        owner: address,
+        filter: { StructType: noteType },
+        options: { showType: true, showContent: true },
+        limit: 50,
+      });
+      console.log('SDK result:', result);
+
+      const notes: NoteData[] = [];
+      for (const obj of result.data) {
+        const content = obj.data?.content;
+        if (content?.dataType === 'moveObject') {
+          const fields = content.fields as Record<string, unknown>;
+          if (fields?.title) {
+            notes.push({
+              id: obj.data?.objectId ?? '',
+              owner: address,
+              title: fields.title as string,
+              content: (fields.content as string) || '',
+              created_at: 0,
+              updated_at: 0,
+            });
+          }
+        }
+      }
+      console.log('Notes:', notes);
+      return notes;
+    },
+  });
+
+  if (isPending) {
+    return (
+      <div className="notes-loading">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="error-text">Error: {error.message}</div>;
+  }
+
+  if (!notes || notes.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {notes.map((note) => (
+        <button
+          key={note.id}
+          type="button"
+          className="note-card"
+          onClick={() => onSelect(note)}
+        >
+          <div className="note-title">{note.title}</div>
+          <div className="note-preview">
+            {note.content.slice(0, 100) || 'Empty note'}
+          </div>
+          <div className="note-date">
+            {new Date(note.updated_at || Date.now()).toLocaleDateString()}
+          </div>
+        </button>
+      ))}
+    </>
   );
 }
 

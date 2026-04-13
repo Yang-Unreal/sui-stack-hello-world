@@ -1,30 +1,42 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-/// This example demonstrates a basic use of a shared greeting.
+/// A private note storage on Sui blockchain
 /// Rules:
-/// - anyone can create and share a Greeting object
-/// - everyone can update the text of the Greeting object
+/// - anyone can create a Note
+/// - only the owner can update or delete their Note
 module hello_world::greeting {
   use std::string;
 
-  /// A shared greeting
-  public struct Greeting has key {
+  /// A private note - owned by the creator
+  public struct Note has key, store {
     id: UID,
-    text: string::String,
-  }
- 
-  /// API call that creates a globally shared Greeting object initialized with "Hello world!"
-  public fun new(ctx: &mut TxContext) { 
-    let new_greeting = Greeting { 
-      id: object::new(ctx),
-      text: b"Hello world!".to_string()
-    };
-    transfer::share_object(new_greeting);
+    owner: address,
+    title: string::String,
+    content: string::String,
   }
 
-  /// API call that updates text of Greeting object
-  public fun update_text(greeting: &mut Greeting, new_text: string::String) {
-    greeting.text = new_text;
+  /// Create a new Note - returns it for the caller to handle
+  public fun new(ctx: &mut TxContext, title: string::String, content: string::String): Note {
+    Note { 
+      id: object::new(ctx),
+      owner: ctx.sender(),
+      title,
+      content,
+    }
+  }
+
+  /// Update Note content - only owner can call
+  public fun update_content(note: &mut Note, new_title: string::String, new_content: string::String, ctx: &mut TxContext) {
+    assert!(note.owner == ctx.sender(), 0);
+    note.title = new_title;
+    note.content = new_content;
+  }
+
+  /// Delete Note - only owner can call
+  public fun delete(note: Note, ctx: &mut TxContext) {
+    assert!(note.owner == ctx.sender(), 0);
+    let Note { id, owner: _, title: _, content: _ } = note;
+    object::delete(id);
   }
 }

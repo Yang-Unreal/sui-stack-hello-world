@@ -1,9 +1,9 @@
 import { useCurrentNetwork } from '@mysten/dapp-kit-react';
-import { TESTNET_HELLO_WORLD_PACKAGE_ID } from './constants.ts';
+import { TESTNET_NOTE_PACKAGE_ID } from './constants.ts';
 
 const networkVariables = {
   testnet: {
-    helloWorldPackageId: TESTNET_HELLO_WORLD_PACKAGE_ID,
+    notePackageId: TESTNET_NOTE_PACKAGE_ID,
   },
 } as const;
 
