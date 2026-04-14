@@ -10,6 +10,37 @@ import {
 } from 'react';
 import { useNetworkVariable } from './networkConfig';
 import katex from 'katex';
+import mermaid from 'mermaid';
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+  securityLevel: 'loose',
+});
+
+function MermaidDiagram({ code }: { code: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const renderDiagram = async () => {
+      try {
+        const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
+        const { svg } = await mermaid.render(id, code);
+        if (containerRef.current) {
+          containerRef.current.innerHTML = svg;
+        }
+      } catch (e) {
+        if (containerRef.current) {
+          containerRef.current.innerHTML = `<pre class="notion-code"><code>${code}</code></pre><p style="color:red;font-size:12px">Mermaid error: ${e instanceof Error ? e.message : 'Invalid diagram syntax'}</p>`;
+        }
+      }
+    };
+    renderDiagram();
+  }, [code]);
+
+  return <div ref={containerRef} className="notion-mermaid" />;
+}
 
 interface NoteData {
   id: string;
@@ -405,6 +436,24 @@ const freshTitle = noteData?.title ?? note.title ?? '';
       }
 
       // Code block
+      if (trimmed.startsWith('```mermaid')) {
+        const codeLines: string[] = [];
+        i++;
+        while (i < lines.length && !lines[i].trim().endsWith('```')) {
+          codeLines.push(lines[i]);
+          i++;
+        }
+        const code = codeLines.join('\n');
+        blocks.push(
+          <div key={blocks.length} className="notion-mermaid-container">
+            <MermaidDiagram code={code} />
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      // Regular code block
       if (trimmed.startsWith('```')) {
         const codeLines: string[] = [];
         i++;

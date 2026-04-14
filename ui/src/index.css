@@ -567,6 +567,25 @@ body {
   text-align: center;
 }
 
+/* Mermaid diagrams */
+.notion-mermaid-container {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.notion-mermaid {
+  display: flex;
+  justify-content: center;
+}
+
+.notion-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Todo list styles */
 .notion-todo {
   display: flex;
