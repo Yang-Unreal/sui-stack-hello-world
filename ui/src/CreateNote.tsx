@@ -2,8 +2,12 @@ import { useCurrentAccount, useDAppKit } from '@mysten/dapp-kit-react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useMutation } from '@tanstack/react-query';
 import { type ChangeEvent, useState } from 'react';
-
+import { X } from 'lucide-react';
 import { useNetworkVariable } from './networkConfig';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function CreateNote({
   onCreated,
@@ -53,66 +57,57 @@ export function CreateNote({
   };
 
   return (
-    <div className="page-content">
-      <div className="page-inner">
-        <div className="modal" style={{ maxWidth: '600px' }}>
-          <div className="modal-header">
-            <h2 className="modal-title">New Page</h2>
-            <button type="button" className="modal-close" onClick={onCancel}>
-              ×
-            </button>
-          </div>
-
-          <div className="modal-content">
-            <div
-              className="page-icon"
-              style={{
-                width: '64px',
-                height: '64px',
-                fontSize: '40px',
-                marginBottom: '24px',
-                cursor: 'pointer',
-                background: 'var(--bg-secondary)',
-              }}
-              onClick={() => setShowIconPicker(!showIconPicker)}
-              title="Click to change icon"
-            >
-              {selectedIcon}
-            </div>
-
-            {showIconPicker && (
-              <div className="icon-picker" style={{ marginBottom: '24px' }}>
-                {icons.map((icon) => (
-                  <button
-                    key={icon}
-                    type="button"
-                    className={`icon-option ${selectedIcon === icon ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedIcon(icon);
-                      setShowIconPicker(false);
-                    }}
-                  >
-                    {icon}
-                  </button>
-                ))}
+    <div className="flex-1 overflow-auto">
+      <div className="max-w-2xl mx-auto p-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle>New Page</CardTitle>
+            <Button variant="ghost" size="icon" onClick={onCancel}>
+              <X className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-6">
+              <div
+                className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-3xl cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => setShowIconPicker(!showIconPicker)}
+                title="Click to change icon"
+              >
+                {selectedIcon}
               </div>
-            )}
 
-            <div className="form-group">
-              <input
-                className="page-title"
-                style={{ fontSize: '32px' }}
+              {showIconPicker && (
+                <div className="grid grid-cols-8 gap-2 p-3 bg-muted rounded-lg">
+                  {icons.map((icon) => (
+                    <button
+                      key={icon}
+                      type="button"
+                      className={`w-10 h-10 rounded-md flex items-center justify-center text-xl transition-colors ${
+                        selectedIcon === icon
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-muted-foreground/20'
+                      }`}
+                      onClick={() => {
+                        setSelectedIcon(icon);
+                        setShowIconPicker(false);
+                      }}
+                    >
+                      {icon}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <Input
                 placeholder="Untitled"
                 value={title}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setTitle(e.target.value)
                 }
+                className="text-2xl font-semibold h-auto py-2"
               />
-            </div>
 
-            <div className="form-group">
-              <textarea
-                className="textarea"
+              <Textarea
                 placeholder="Write something..."
                 value={content}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
@@ -120,35 +115,18 @@ export function CreateNote({
                 }
                 rows={8}
               />
-            </div>
-          </div>
 
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onCancel}
-              disabled={waiting}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={create}
-              disabled={waiting || !title.trim()}
-            >
-              {waiting ? (
-                <>
-                  <span className="spinner"></span>
-                  Creating...
-                </>
-              ) : (
-                'Create'
-              )}
-            </button>
-          </div>
-        </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={onCancel} disabled={waiting}>
+                  Cancel
+                </Button>
+                <Button onClick={create} disabled={waiting || !title.trim()}>
+                  {waiting ? 'Creating...' : 'Create'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -5,10 +5,33 @@ import {
   useDAppKit,
 } from '@mysten/dapp-kit-react';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import {
+  Home,
+  Search,
+  Clock,
+  Star,
+  FileText,
+  Plus,
+  Trash2,
+  ChevronLeft,
+  Wallet,
+  ArrowLeft,
+} from 'lucide-react';
 import { CreateNote } from './CreateNote';
 import { NoteCard } from './NoteCard';
 import { useNetworkVariable } from './networkConfig';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface NoteData {
   id: string;
@@ -52,104 +75,102 @@ const NOTE_ICONS = [
   '📊',
 ];
 
-function SidebarIcon({
-  emoji,
-  className,
-}: {
-  emoji: string;
-  className?: string;
-}) {
-  return <span className={className}>{emoji}</span>;
-}
-
 function Sidebar({
   notes,
   selectedNote,
   onSelectNote,
   onNewPage,
-  onToggleSidebar: _onToggleSidebar,
 }: {
   notes: NoteData[];
   selectedNote: NoteData | null;
   onSelectNote: (note: NoteData | null) => void;
   onNewPage: () => void;
-  onToggleSidebar?: () => void;
 }) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-section">
-        <div className="sidebar-header">
-          <div className="sidebar-title">
-            <SidebarIcon emoji="🚀" className="sidebar-title-icon" />
-            <span>Workspace</span>
+    <aside className="w-60 bg-card border-r border-border flex flex-col h-full">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center gap-2.5 text-sm font-semibold">
+          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-lg">📝</span>
           </div>
-        </div>
-        <div
-          className={`sidebar-item ${selectedNote === null ? 'active' : ''}`}
-          onClick={() => onSelectNote(null)}
-        >
-          <SidebarIcon emoji="🏠" className="sidebar-item-icon" />
-          <span className="sidebar-item-text">Home</span>
-        </div>
-        <div className="sidebar-item">
-          <SidebarIcon emoji="🔎" className="sidebar-item-icon" />
-          <span className="sidebar-item-text">Search</span>
-        </div>
-        <div className="sidebar-item">
-          <SidebarIcon emoji="🕐" className="sidebar-item-icon" />
-          <span className="sidebar-item-text">Recently Updated</span>
-        </div>
-        <div className="sidebar-item">
-          <SidebarIcon emoji="⭐" className="sidebar-item-icon" />
-          <span className="sidebar-item-text">Favorites</span>
+          <span className="text-foreground">Sui Notes</span>
         </div>
       </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-header">
-          <div className="sidebar-title">
-            <SidebarIcon emoji="📄" className="sidebar-title-icon" />
-            <span>Pages</span>
-          </div>
-          <button
-            type="button"
-            className="sidebar-add"
-            onClick={onNewPage}
-            title="New page"
+      <ScrollArea className="flex-1">
+        <div className="p-2 space-y-0.5">
+          <div
+            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer transition-all duration-150 ${
+              selectedNote === null
+                ? 'bg-accent text-accent-foreground font-medium'
+                : 'hover:bg-muted text-muted-foreground'
+            }`}
+            onClick={() => onSelectNote(null)}
           >
-            +
-          </button>
+            <Home className="w-4 h-4 shrink-0" />
+            <span>Home</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+            <Search className="w-4 h-4 shrink-0" />
+            <span>Search</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Recently Updated</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+            <Star className="w-4 h-4 shrink-0" />
+            <span>Favorites</span>
+          </div>
         </div>
-        <div
-          className="scrollbar"
-          style={{ maxHeight: '300px', overflowY: 'auto' }}
-        >
-          {notes.map((note) => (
-            <div
-              key={note.id}
-              className={`sidebar-item ${selectedNote?.id === note.id ? 'active' : ''}`}
-              onClick={() => onSelectNote(note)}
-            >
-              <SidebarIcon
-                emoji={note.icon || '📄'}
-                className="sidebar-item-icon"
-              />
-              <span className="sidebar-item-text">
-                {note.title || 'Untitled'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-header">
-          <div className="sidebar-title">
-            <SidebarIcon emoji="🗑️" className="sidebar-title-icon" />
+        <div className="p-2 border-t border-border mt-2">
+          <div className="flex items-center justify-between px-2.5 py-1.5">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              <FileText className="w-3.5 h-3.5" />
+              <span>Pages</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={onNewPage}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+
+          <div className="space-y-0.5">
+            {notes.map((note) => (
+              <div
+                key={note.id}
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer transition-all duration-150 ${
+                  selectedNote?.id === note.id
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'hover:bg-muted text-foreground'
+                }`}
+                onClick={() => onSelectNote(note)}
+              >
+                <span className="text-base shrink-0">{note.icon || '📄'}</span>
+                <span className="truncate">{note.title || 'Untitled'}</span>
+              </div>
+            ))}
+          </div>
+
+          {notes.length === 0 && (
+            <div className="px-2.5 py-4 text-xs text-muted-foreground text-center">
+              No pages yet
+            </div>
+          )}
+        </div>
+
+        <div className="p-2 border-t border-border mt-2">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+            <Trash2 className="w-4 h-4" />
             <span>Trash</span>
           </div>
         </div>
-      </div>
+      </ScrollArea>
     </aside>
   );
 }
@@ -167,82 +188,62 @@ function TopBar({
 }) {
   const currentAccount = useCurrentAccount();
   const dAppKit = useDAppKit();
-  const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
-    <header className="topbar">
-      <div className="topbar-left">
+    <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card">
+      <div className="flex items-center gap-3">
         {onBack && (
-          <button type="button" className="back-btn" onClick={onBack}>
-            ← Back
-          </button>
+          <Button variant="ghost" size="icon" onClick={onBack} className="cursor-pointer">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
         )}
-        <div className="topbar-breadcrumb">
-          {note ? (
-            <>
-              <span className="topbar-breadcrumb-item">
-                <SidebarIcon emoji="📄" />
-                <span>Pages</span>
-              </span>
-              <span className="topbar-breadcrumb-separator">›</span>
-              <span className="topbar-breadcrumb-item">
-                {note.title || 'Untitled'}
-              </span>
-            </>
-          ) : (
-            <span className="topbar-breadcrumb-item">Home</span>
-          )}
-        </div>
+        {note ? (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Pages</span>
+            <ChevronLeft className="w-3 h-3 text-muted-foreground -rotate-90" />
+            <span className="font-medium truncate max-w-[200px]">{note.title || 'Untitled'}</span>
+          </div>
+        ) : (
+          <span className="font-medium">Home</span>
+        )}
       </div>
-      <div className="topbar-right">
-        <div className="search-input">
-          <span className="search-input-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search..."
+
+      <div className="flex items-center gap-3">
+        <div className="relative w-56">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9 h-9 bg-muted border-transparent focus:bg-background cursor-text"
           />
         </div>
+
         {currentAccount ? (
-          <div className="wallet-menu" ref={menuRef}>
-            <button
-              type="button"
-              className="wallet-btn"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              <span className="wallet-dot"></span>
-              <span>
-                {currentAccount.address.slice(0, 4)}...
-                {currentAccount.address.slice(-4)}
-              </span>
-            </button>
-            {showMenu && (
-              <div className="wallet-dropdown">
-                <button
-                  type="button"
-                  className="wallet-dropdown-item disconnect"
-                  onClick={() => {
-                    dAppKit.disconnectWallet();
-                    setShowMenu(false);
-                  }}
-                >
-                  Disconnect
-                </button>
-              </div>
-            )}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button variant="ghost" size="sm" className="gap-2 cursor-pointer hover:bg-muted">
+                <Avatar className="w-7 h-7">
+                  <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                    {currentAccount.address.slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {currentAccount.address.slice(0, 4)}...
+                  {currentAccount.address.slice(-4)}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={() => dAppKit.disconnectWallet()}
+                className="text-destructive cursor-pointer"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                Disconnect
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <ConnectButton />
         )}
@@ -261,72 +262,72 @@ function HomeView({
   onNewNote: () => void;
 }) {
   return (
-    <div className="page-content">
-      <div className="page-inner">
-        <div className="page-icon-wrapper">
-          <div
-            className="page-icon"
-            style={{ background: 'var(--bg-secondary)', fontSize: '40px' }}
-          >
-            🚀
+    <div className="flex-1 overflow-auto">
+      <div className="max-w-5xl mx-auto px-8 py-12">
+        <div className="flex items-center gap-5 mb-10">
+          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+            <span className="text-4xl">📝</span>
+          </div>
+          <div>
+            <h1 className="text-3xl font-semibold mb-1.5">Welcome to Sui Notes</h1>
+            <p className="text-muted-foreground text-lg">
+              Your notes, stored securely on the Sui blockchain.
+            </p>
           </div>
         </div>
-        <h1 className="page-title">Welcome to Sui Notes</h1>
-        <p
-          style={{
-            color: 'var(--text-secondary)',
-            marginBottom: '32px',
-            fontSize: '16px',
-          }}
-        >
-          Your notes, stored securely on the Sui blockchain.
-        </p>
 
-        <div className="page-blocks">
-          <div className="empty-state">
-            <div className="empty-state-icon">📝</div>
-            <div className="empty-state-title">No notes yet</div>
-            <div className="empty-state-text">
-              Create your first note to get started with your personal knowledge
-              base.
+        {notes.length === 0 ? (
+          <Card className="mt-8 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mb-6">
+                <FileText className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No notes yet</h3>
+              <p className="text-sm text-muted-foreground mb-6 text-center max-w-md">
+                Create your first note to get started with your personal
+                knowledge base stored on the blockchain.
+              </p>
+              <Button onClick={onNewNote} size="lg" className="gap-2 cursor-pointer">
+                <Plus className="w-5 h-5" />
+                New Page
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-muted-foreground">
+                Recent Pages
+              </h2>
+              <Button variant="outline" size="sm" onClick={onNewNote} className="gap-2 cursor-pointer">
+                <Plus className="w-4 h-4" />
+                New Page
+              </Button>
             </div>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={onNewNote}
-            >
-              + New Page
-            </button>
-          </div>
-        </div>
 
-        {notes.length > 0 && (
-          <div style={{ marginTop: '48px' }}>
-            <h3
-              style={{
-                fontSize: '14px',
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
-                marginBottom: '12px',
-              }}
-            >
-              Recent Pages
-            </h3>
-            <div className="notes-grid">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {notes.map((note) => (
-                <div
+                <Card
                   key={note.id}
-                  className="note-row"
+                  className="cursor-pointer hover:border-primary hover:shadow-md transition-all duration-200 group"
                   onClick={() => onSelectNote(note)}
                 >
-                  <div className="note-icon">{note.icon || '📄'}</div>
-                  <div className="note-info">
-                    <div className="note-title">{note.title || 'Untitled'}</div>
-                    <div className="note-preview">
-                      {note.content.slice(0, 80) || 'Empty note'}
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-4">
+                      <span className="text-3xl group-hover:scale-110 transition-transform duration-200">
+                        {note.icon || '📄'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold truncate mb-1.5 text-foreground">
+                          {note.title || 'Untitled'}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {note.content.slice(0, 100) || 'Empty note'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -421,57 +422,55 @@ function App() {
 
   if (!currentAccount) {
     return (
-      <div className="app">
-        <div className="page-content">
-          <div className="page-inner">
-            <div className="empty-state" style={{ marginTop: '80px' }}>
-              <div className="empty-state-icon">🔗</div>
-              <div className="empty-state-title">Connect Your Wallet</div>
-              <div className="empty-state-text">
-                Connect your Sui wallet to start creating and managing your
-                notes on the blockchain.
-              </div>
-              <ConnectButton />
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/30 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-dashed shadow-elevated">
+          <CardContent className="flex flex-col items-center justify-center py-16 px-8">
+            <div className="w-24 h-24 rounded-3xl bg-primary flex items-center justify-center text-5xl mb-8 shadow-lg">
+              📝
             </div>
-          </div>
-        </div>
+            <h1 className="text-3xl font-semibold mb-3 text-center">
+              Connect Your Wallet
+            </h1>
+            <p className="text-sm text-muted-foreground text-center mb-8 max-w-xs leading-relaxed">
+              Connect your Sui wallet to start creating and managing your notes
+              securely on the blockchain.
+            </p>
+            <ConnectButton />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (isPending) {
     return (
-      <div className="app">
-        <div className="loading-spinner">
-          <div className="spinner" />
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="app">
-        <div className="page-content">
-          <div className="page-inner">
-            <div className="error-message">
-              Error loading notes: {error.message}
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="py-6">
+            <div className="text-destructive text-sm">Error: {error.message}</div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="app">
+    <div className="h-screen flex bg-background">
       <Sidebar
         notes={filteredNotes}
         selectedNote={selectedNote}
         onSelectNote={setSelectedNote}
         onNewPage={() => setShowCreate(true)}
       />
-      <main className="main-content">
+      <main className="flex-1 flex flex-col overflow-hidden">
         <TopBar
           note={selectedNote}
           onBack={selectedNote ? () => setSelectedNote(null) : undefined}

@@ -11,6 +11,14 @@ import {
 import { useNetworkVariable } from './networkConfig';
 import katex from 'katex';
 import mermaid from 'mermaid';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Pencil,
+  Trash2,
+  Save,
+  FileText,
+} from 'lucide-react';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -32,7 +40,7 @@ function MermaidDiagram({ code }: { code: string }) {
         }
       } catch (e) {
         if (containerRef.current) {
-          containerRef.current.innerHTML = `<pre class="notion-code"><code>${code}</code></pre><p style="color:red;font-size:12px">Mermaid error: ${e instanceof Error ? e.message : 'Invalid diagram syntax'}</p>`;
+          containerRef.current.innerHTML = `<pre className="notion-code"><code>${code}</code></pre><p style="color:red;font-size:12px">Mermaid error: ${e instanceof Error ? e.message : 'Invalid diagram syntax'}</p>`;
         }
       }
     };
@@ -84,7 +92,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
   {
     id: 'todo',
     name: 'To-do List',
-    icon: '📋',
+    icon: '☑️',
     description: 'Task list',
     prefix: '- [ ] ',
   },
@@ -112,7 +120,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
   {
     id: 'code',
     name: 'Code',
-    icon: '```',
+    icon: '</>',
     description: 'Code block',
     prefix: '```\n\n```',
   },
@@ -199,6 +207,7 @@ export function NoteCard({
     position: 0,
   });
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -219,10 +228,9 @@ export function NoteCard({
     title: string;
     content: string;
   } | null;
-const freshTitle = noteData?.title ?? note.title ?? '';
+  const freshTitle = noteData?.title ?? note.title ?? '';
   const freshContent = noteData?.content ?? note.content ?? '';
 
-  // Parse inline formatting (bold, italic, highlight, link, inline code)
   const parseInlineContent = (text: string): React.ReactNode[] => {
     const parts: React.ReactNode[] = [];
     let remaining = text;
@@ -233,23 +241,23 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         try {
           return <div key={keyIndex++} dangerouslySetInnerHTML={{ __html: katex.renderToString(content, { displayMode: true, throwOnError: false }) }} />;
         } catch { return <code key={keyIndex++}>${content}$</code>; }
-      } }, // Block formula (greedy)
+      } },
       { regex: /^\$(.+)\$/, render: (content: string) => {
         try {
           return <span key={keyIndex++} dangerouslySetInnerHTML={{ __html: katex.renderToString(content, { displayMode: false, throwOnError: false }) }} />;
         } catch { return <code key={keyIndex++}>${content}$</code>; }
-      } }, // Inline formula (greedy)
-      { regex: /^\*\*\*\*(.+?)\*\*\*\*/, render: (content: string) => <strong key={keyIndex++}><em>{content}</em></strong> }, // Bold + Italic
-      { regex: /^\*\*(.+?)\*\*/, render: (content: string) => <strong key={keyIndex++} style={{ fontWeight: 600 }}>{content}</strong> }, // Bold
-      { regex: /^__(.+?)__/, render: (content: string) => <strong key={keyIndex++}>{content}</strong> }, // Bold alt
-      { regex: /^\*(.+?)\*/, render: (content: string) => <em key={keyIndex++}>{content}</em> }, // Italic
-      { regex: /^_(.+?)_/, render: (content: string) => <em key={keyIndex++}>{content}</em> }, // Italic alt
-      { regex: /^\+\+(.+?)\+\+/, render: (content: string) => <mark key={keyIndex++} style={{ backgroundColor: '#fef3c7', padding: '0 2px', borderRadius: '2px' }}>{content}</mark> }, // Highlight
-      { regex: /^\=\=(.+?)\=\=/, render: (content: string) => <mark key={keyIndex++} style={{ backgroundColor: '#fef3c7', padding: '0 2px', borderRadius: '2px' }}>{content}</mark> }, // Highlight alt
-      { regex: /^~~(.+?)~~/, render: (content: string) => <del key={keyIndex++}>{content}</del> }, // Strikethrough
-      { regex: /^`([^`]+)`/, render: (content: string) => <code key={keyIndex++} style={{ backgroundColor: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '3px', fontFamily: 'monospace', fontSize: '13px' }}>{content}</code> }, // Inline code
-      { regex: /^\!\[([^\]]*)\]\(([^)]+)\)/, render: (alt: string, url: string) => <img key={keyIndex++} src={url} alt={alt} style={{ maxWidth: '100%', borderRadius: '4px', margin: '8px 0' }} /> }, // Image
-      { regex: /^\[([^\]]+)\]\(([^)]+)\)/, render: (text: string, url: string) => <a key={keyIndex++} href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', borderBottom: '1px solid var(--accent-blue)' }}>{text}</a> }, // Link
+      } },
+      { regex: /^\*\*\*\*(.+?)\*\*\*\*/, render: (content: string) => <strong key={keyIndex++}><em>{content}</em></strong> },
+      { regex: /^\*\*(.+?)\*\*/, render: (content: string) => <strong key={keyIndex++} style={{ fontWeight: 600 }}>{content}</strong> },
+      { regex: /^__(.+?)__/, render: (content: string) => <strong key={keyIndex++}>{content}</strong> },
+      { regex: /^\*(.+?)\*/, render: (content: string) => <em key={keyIndex++}>{content}</em> },
+      { regex: /^_(.+?)_/, render: (content: string) => <em key={keyIndex++}>{content}</em> },
+      { regex: /^\+\+(.+?)\+\+/, render: (content: string) => <mark key={keyIndex++} style={{ backgroundColor: '#fef3c7', padding: '0 2px', borderRadius: '2px' }}>{content}</mark> },
+      { regex: /^\=\=(.+?)\=\=/, render: (content: string) => <mark key={keyIndex++} style={{ backgroundColor: '#fef3c7', padding: '0 2px', borderRadius: '2px' }}>{content}</mark> },
+      { regex: /^~~(.+?)~~/, render: (content: string) => <del key={keyIndex++}>{content}</del> },
+      { regex: /^`([^`]+)`/, render: (content: string) => <code key={keyIndex++} style={{ backgroundColor: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '3px', fontFamily: 'monospace', fontSize: '13px' }}>{content}</code> },
+      { regex: /^\!\[([^\]]*)\]\(([^)]+)\)/, render: (alt: string, url: string) => <img key={keyIndex++} src={url} alt={alt} style={{ maxWidth: '100%', borderRadius: '4px', margin: '8px 0' }} /> },
+      { regex: /^\[([^\]]+)\]\(([^)]+)\)/, render: (text: string, url: string) => <a key={keyIndex++} href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#2eaadc', textDecoration: 'none', borderBottom: '1px solid #2eaadc' }}>{text}</a> },
     ];
 
     while (remaining.length > 0) {
@@ -267,13 +275,11 @@ const freshTitle = noteData?.title ?? note.title ?? '';
       }
 
       if (!matched) {
-        // Find the next special character or add the whole remaining text
         const nextSpecial = remaining.search(/[*_`=\[+\$]/);
         if (nextSpecial === -1) {
           parts.push(remaining);
           break;
         } else if (nextSpecial === 0) {
-          // Special char but no pattern matched, add it as regular text
           parts.push(remaining.charAt(0));
           remaining = remaining.slice(1);
         } else {
@@ -286,7 +292,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
     return parts;
   };
 
-  // Content renderer with proper block detection
   const renderContent = (content: string, onToggleTodo?: (index: number) => void) => {
     if (!content) return null;
 
@@ -299,13 +304,11 @@ const freshTitle = noteData?.title ?? note.title ?? '';
       const line = lines[i];
       const trimmed = line.trim();
 
-      // Empty line
       if (!trimmed) {
         i++;
         continue;
       }
 
-      // Heading 1
       if (trimmed.startsWith('# ') && !trimmed.startsWith('##')) {
         blocks.push(
           <h1 key={blocks.length} className="notion-h1">
@@ -316,7 +319,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Heading 2
       if (trimmed.startsWith('## ') && !trimmed.startsWith('###')) {
         blocks.push(
           <h2 key={blocks.length} className="notion-h2">
@@ -327,7 +329,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Heading 3
       if (trimmed.startsWith('### ')) {
         blocks.push(
           <h3 key={blocks.length} className="notion-h3">
@@ -338,14 +339,12 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Divider
       if (trimmed === '---') {
         blocks.push(<hr key={blocks.length} className="notion-divider" />);
         i++;
         continue;
       }
 
-      // Todo item
       if (/^-\s*\[\s*[xX ]\s*\]\s*/.test(trimmed)) {
         const todoMatch = trimmed.match(/^-\s*\[\s*([xX ])\s*\]\s*(.+)$/);
         if (todoMatch) {
@@ -378,7 +377,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         }
       }
 
-      // Bullet list - collect consecutive items (must check AFTER todo, since todo also starts with "-")
       if (trimmed.startsWith('- ') && !/^-\s*\[/.test(trimmed)) {
         const items: string[] = [];
         while (i < lines.length && lines[i].trim().startsWith('- ') && !/^-\s*\[/.test(lines[i].trim())) {
@@ -397,7 +395,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Numbered list
       if (/^\d+\.\s/.test(trimmed)) {
         const items: string[] = [];
         while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
@@ -416,7 +413,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Quote
       if (trimmed.startsWith('> ')) {
         const quotes: string[] = [];
         while (i < lines.length && lines[i].trim().startsWith('> ')) {
@@ -435,7 +431,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Code block
       if (trimmed.startsWith('```mermaid')) {
         const codeLines: string[] = [];
         i++;
@@ -453,7 +448,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Regular code block
       if (trimmed.startsWith('```')) {
         const codeLines: string[] = [];
         i++;
@@ -470,7 +464,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Table (| col1 | col2 | ...)
       if (trimmed.startsWith('|')) {
         const tableRows: string[][] = [];
         while (i < lines.length && lines[i].trim().startsWith('|')) {
@@ -480,7 +473,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
           tableRows.push(row);
           i++;
         }
-        // Skip the separator row (|---|)
         if (tableRows.length > 1 && tableRows[1].every(cell => /^[-:]+$/.test(cell))) {
           tableRows.splice(1, 1);
         }
@@ -511,7 +503,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Block formula ($$formula$$) - single line
       if (trimmed.startsWith('$$') && trimmed.endsWith('$$') && trimmed.length > 4) {
         const formula = trimmed.slice(2, -2);
         if (formula) {
@@ -529,7 +520,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Multi-line block formula ($$ on its own line)
       if (trimmed === '$$') {
         const formulaLines: string[] = [];
         i++;
@@ -557,14 +547,11 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         continue;
       }
 
-      // Regular paragraph - collect until empty line or new block
       const paraLines: string[] = [];
       while (i < lines.length) {
         const l = lines[i].trim();
         if (!l) break;
-        // Block formula starts with $$ and is the only content on line
         if (l.startsWith('$$') && l.endsWith('$$')) {
-          // Check if it's a single-line formula like $$x^2$$
           const inner = l.slice(2, -2);
           if (inner.length > 0 && !l.includes('\n')) {
             break;
@@ -630,12 +617,10 @@ const freshTitle = noteData?.title ?? note.title ?? '';
     const cursorPos = e.target.selectionStart;
     const textBeforeCursor = value.slice(0, cursorPos);
 
-    // Find the last "/" before cursor that's not escaped or inside a URL
     let lastSlash = -1;
     for (let i = textBeforeCursor.length - 1; i >= 0; i--) {
       const char = textBeforeCursor[i];
       if (char === '/' && (i === 0 || textBeforeCursor[i - 1] !== '\\')) {
-        // Check if it's part of a URL pattern - if there's a closing ] before it, it's a link
         const afterSlash = textBeforeCursor.slice(i);
         if (!afterSlash.match(/^\/[^[(]*\[/) && !afterSlash.match(/^\/[^(]*\(/)) {
           lastSlash = i;
@@ -646,7 +631,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
 
     if (lastSlash >= 0) {
       const query = textBeforeCursor.slice(lastSlash + 1, cursorPos);
-      // Only show menu if query doesn't contain spaces or line breaks (still typing command)
       if (!query.includes(' ') && !query.includes('\n') && query.length > 0) {
         setSlashMenu({
           show: true,
@@ -662,6 +646,7 @@ const freshTitle = noteData?.title ?? note.title ?? '';
     }
 
     setEditContent(value);
+    setHasChanges(true);
   };
 
   const filteredCommands = slashMenu.query
@@ -683,7 +668,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
     setEditContent(newContent);
     setSlashMenu({ show: false, query: '', position: 0 });
 
-    // Focus back on textarea
     setTimeout(() => {
       if (textareaRef.current) {
         const newPos = pos + cmd.prefix.length;
@@ -692,31 +676,6 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         textareaRef.current.focus();
       }
     }, 0);
-  };
-
-  const updateNote = () => {
-    if (!editTitle.trim()) return;
-    setWaiting(true);
-
-    const tx = new Transaction();
-    tx.moveCall({
-      target: `${notePackageId}::greeting::update_content`,
-      arguments: [
-        tx.object(note.id),
-        tx.pure.string(editTitle),
-        tx.pure.string(editContent),
-      ],
-    });
-
-    signAndExecute(tx, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['getOwnedNotes'] });
-        queryClient.invalidateQueries({ queryKey: ['getNote', note.id] });
-        setWaiting(false);
-        setIsEditing(false);
-      },
-      onError: () => setWaiting(false),
-    });
   };
 
   const deleteNote = () => {
@@ -739,10 +698,8 @@ const freshTitle = noteData?.title ?? note.title ?? '';
   };
 
   const toggleTodo = (index: number) => {
-    setWaiting(true);
-
-    // Parse current content and toggle the todo state
-    const lines = freshContent.split('\n');
+    const content = isEditing ? editContent : freshContent;
+    const lines = content.split('\n');
     let todoIndex = 0;
     const newLines = lines.map((line) => {
       const match = line.match(/^-\s*\[([ xX])\]\s*(.+)$/);
@@ -758,14 +715,26 @@ const freshTitle = noteData?.title ?? note.title ?? '';
 
     const newContent = newLines.join('\n');
 
-    // Save to blockchain
+    if (isEditing) {
+      setEditContent(newContent);
+    }
+
+    setHasChanges(true);
+  };
+
+  const saveAllChanges = () => {
+    if (!hasChanges) return;
+    setWaiting(true);
+
+    const contentToSave = isEditing ? editContent : freshContent;
+
     const tx = new Transaction();
     tx.moveCall({
       target: `${notePackageId}::greeting::update_content`,
       arguments: [
         tx.object(note.id),
         tx.pure.string(freshTitle),
-        tx.pure.string(newContent),
+        tx.pure.string(contentToSave),
       ],
     });
 
@@ -774,6 +743,7 @@ const freshTitle = noteData?.title ?? note.title ?? '';
         queryClient.invalidateQueries({ queryKey: ['getOwnedNotes'] });
         queryClient.invalidateQueries({ queryKey: ['getNote', note.id] });
         setWaiting(false);
+        setHasChanges(false);
       },
       onError: () => setWaiting(false),
     });
@@ -788,103 +758,95 @@ const freshTitle = noteData?.title ?? note.title ?? '';
 
   if (isPending) {
     return (
-      <div className="page-content">
-        <div className="page-inner">
-          <div className="loading-spinner">
-            <div className="spinner" />
-          </div>
-        </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="page-content">
-      <div className="page-inner">
-        {note.cover && (
-          <div
-            className="page-cover"
-            style={{ backgroundImage: `url(${note.cover})` }}
-          />
-        )}
-
+    <div className="flex-1 overflow-auto">
+      <div className="max-w-4xl mx-auto px-12 pb-20 pt-12">
         {isEditing ? (
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                marginBottom: '16px',
-              }}
-            >
-              <div
-                className="page-icon"
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  fontSize: '40px',
-                  cursor: 'pointer',
-                }}
+          <div className="animate-in fade-in duration-200">
+            <div className="flex justify-center mb-6">
+              <button
+                type="button"
+                className="w-20 h-20 text-5xl rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center cursor-pointer transition-colors"
                 onClick={() => setShowIconPicker(!showIconPicker)}
               >
                 {selectedIcon}
-              </div>
+              </button>
             </div>
 
             {showIconPicker && (
-              <div className="icon-picker" style={{ marginBottom: '24px' }}>
-                {icons.map((icon) => (
-                  <button
-                    key={icon}
-                    type="button"
-                    className={`icon-option ${selectedIcon === icon ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedIcon(icon);
-                      setShowIconPicker(false);
-                    }}
-                  >
-                    {icon}
-                  </button>
-                ))}
+              <div className="mb-6 p-4 bg-muted rounded-lg">
+                <div className="grid grid-cols-8 gap-2">
+                  {icons.map((icon) => (
+                    <button
+                      key={icon}
+                      type="button"
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl cursor-pointer transition-colors ${
+                        selectedIcon === icon
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-muted-foreground/20'
+                      }`}
+                      onClick={() => {
+                        setSelectedIcon(icon);
+                        setShowIconPicker(false);
+                      }}
+                    >
+                      {icon}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
             <input
-              className="page-title"
-              style={{ fontSize: '32px' }}
+              className="w-full text-4xl font-semibold bg-transparent border-none outline-none mb-4"
               value={editTitle}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setEditTitle(e.target.value)
-              }
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                setEditTitle(e.target.value);
+                setHasChanges(true);
+              }}
+              placeholder="Untitled"
             />
 
-            <div style={{ position: 'relative' }}>
-              <textarea
+            <div className="relative">
+              <Textarea
                 ref={textareaRef}
-                className="textarea"
-                style={{ minHeight: '400px', marginTop: '16px' }}
+                className="min-h-[400px] text-base leading-relaxed resize-y"
                 value={editContent}
                 onChange={handleContentChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Type / for commands..."
+                placeholder="Type '/' for commands..."
               />
 
               {slashMenu.show && filteredCommands.length > 0 && (
-                <div className="slash-menu">
-                  <div className="slash-menu-header">Basic blocks</div>
+                <div className="absolute left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-72 overflow-y-auto z-50">
+                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+                    Basic blocks
+                  </div>
                   {filteredCommands.map((cmd, index) => (
                     <button
                       key={cmd.id}
                       type="button"
-                      className={`slash-menu-item ${index === selectedCommandIndex ? 'selected' : ''}`}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-left cursor-pointer transition-colors ${
+                        index === selectedCommandIndex
+                          ? 'bg-accent'
+                          : 'hover:bg-muted'
+                      }`}
                       onClick={() => insertCommand(cmd)}
                     >
-                      <span className="slash-menu-icon">{cmd.icon}</span>
-                      <div className="slash-menu-info">
-                        <span className="slash-menu-name">{cmd.name}</span>
-                        <span className="slash-menu-desc">
+                      <span className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm">
+                        {cmd.icon}
+                      </span>
+                      <div>
+                        <div className="text-sm font-medium">{cmd.name}</div>
+                        <div className="text-xs text-muted-foreground">
                           {cmd.description}
-                        </span>
+                        </div>
                       </div>
                     </button>
                   ))}
@@ -892,99 +854,81 @@ const freshTitle = noteData?.title ?? note.title ?? '';
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
+            <div className="flex items-center gap-3 mt-6 pt-4 border-t">
+              <Button
+                variant="outline"
                 onClick={handleCancelEdit}
                 disabled={waiting}
               >
                 Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={updateNote}
-                disabled={waiting || !editTitle.trim()}
+              </Button>
+              <Button
+                onClick={saveAllChanges}
+                disabled={waiting || !editTitle.trim() || (!hasChanges && !isEditing)}
+                className="gap-2"
               >
-                {waiting ? (
-                  <>
-                    <span className="spinner"></span>
-                    Saving...
-                  </>
-                ) : (
-                  'Save'
-                )}
-              </button>
+                <Save className="w-4 h-4" />
+                {waiting ? 'Saving...' : hasChanges ? 'Save Changes' : 'Save'}
+              </Button>
             </div>
           </div>
         ) : (
-          <div>
-            <div className="page-icon-wrapper">
-              <div
-                className="page-icon"
+          <div className="animate-in fade-in duration-200">
+            <div className="flex justify-center mb-6">
+              <button
+                type="button"
+                className="w-20 h-20 text-5xl rounded-xl cursor-pointer hover:bg-muted/50 flex items-center justify-center transition-colors"
                 onClick={handleStartEdit}
-                title="Click to edit"
               >
                 {note.icon || '📄'}
-              </div>
+              </button>
             </div>
 
-            <h1
-              className="page-title"
-              style={{ cursor: 'pointer' }}
-              onClick={handleStartEdit}
-            >
+            <h1 className="text-4xl font-semibold text-center mb-8 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={handleStartEdit}>
               {freshTitle}
             </h1>
 
-            <div className="page-properties">
-              <div className="property-row">
-                <span className="property-label">ID</span>
-                <span
-                  className="property-value"
-                  style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-8 pb-6 border-b">
+              <FileText className="w-4 h-4" />
+              <span className="font-mono text-xs">
+                {note.id.slice(0, 8)}...{note.id.slice(-6)}
+              </span>
+            </div>
+
+            <div className="prose prose-neutral max-w-none">
+              {freshContent ? (
+                renderContent(freshContent, toggleTodo)
+              ) : (
+                <div 
+                  className="text-center py-12 cursor-pointer hover:bg-muted/50 rounded-lg transition-colors -mx-4 px-4"
+                  onClick={handleStartEdit}
                 >
-                  {note.id.slice(0, 10)}...{note.id.slice(-6)}
-                </span>
-              </div>
-            </div>
-
-            <div className="divider" />
-
-            <div className="page-blocks">
-              <div className="block">
-                <div className="block-content">
-                  <div className="block-content-inner">
-                    {freshContent ? (
-                      renderContent(freshContent, toggleTodo)
-                    ) : (
-                      <span style={{ color: 'var(--text-tertiary)' }}>
-                        Click to add content...
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-muted-foreground">
+                    Click to add content...
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
+            <div className="flex items-center gap-3 mt-8 pt-6 border-t">
+              <Button
+                variant="outline"
                 onClick={handleStartEdit}
+                className="gap-2"
               >
+                <Pencil className="w-4 h-4" />
                 Edit
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={deleteNote}
                 disabled={waiting}
-                style={{ color: '#f87171' }}
+                className="gap-2 text-muted-foreground hover:text-destructive"
               >
+                <Trash2 className="w-4 h-4" />
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         )}
