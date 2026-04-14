@@ -1,2 +1,2 @@
 export const TESTNET_NOTE_PACKAGE_ID =
-  '0x799fd5c819a86080ba2ae0fba0f0c64e610da9f58480d76875f7de7d68bd133e';
+  '0x7430c20ac90c5c6b6fd5beedc833d124aafa260158fa745aaa278a31b6fbdb85';

@@ -1,6 +1,5 @@
 import { useCurrentAccount, useDAppKit } from '@mysten/dapp-kit-react';
 import { Transaction } from '@mysten/sui/transactions';
-import { Box, Heading, Text } from '@radix-ui/themes';
 import { useMutation } from '@tanstack/react-query';
 import { type ChangeEvent, useState } from 'react';
 
@@ -9,9 +8,11 @@ import { useNetworkVariable } from './networkConfig';
 export function CreateNote({
   onCreated,
   onCancel,
+  icons = ['📄', '📝', '💡', '🎯', '🚀', '📚', '💼'],
 }: {
   onCreated: () => void;
   onCancel: () => void;
+  icons?: string[];
 }) {
   const notePackageId = useNetworkVariable('notePackageId');
   const currentAccount = useCurrentAccount();
@@ -24,6 +25,8 @@ export function CreateNote({
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState(icons[0]);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [waiting, setWaiting] = useState(false);
 
   const create = () => {
@@ -50,70 +53,103 @@ export function CreateNote({
   };
 
   return (
-    <Box className="card">
-      <div className="card-header">
-        <Heading size="5" weight="bold" className="card-title">
-          New Note
-        </Heading>
-        <Text size="2" color="gray" className="card-subtitle">
-          Create a new note on Sui Testnet
-        </Text>
-      </div>
+    <div className="page-content">
+      <div className="page-inner">
+        <div className="modal" style={{ maxWidth: '600px' }}>
+          <div className="modal-header">
+            <h2 className="modal-title">New Page</h2>
+            <button type="button" className="modal-close" onClick={onCancel}>
+              ×
+            </button>
+          </div>
 
-      <div className="field">
-        <Text as="label" size="2" weight="bold" mb="1">
-          Title
-        </Text>
-        <input
-          className="input"
-          placeholder="Note title..."
-          value={title}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setTitle(e.target.value)
-          }
-        />
-      </div>
+          <div className="modal-content">
+            <div
+              className="page-icon"
+              style={{
+                width: '64px',
+                height: '64px',
+                fontSize: '40px',
+                marginBottom: '24px',
+                cursor: 'pointer',
+                background: 'var(--bg-secondary)',
+              }}
+              onClick={() => setShowIconPicker(!showIconPicker)}
+              title="Click to change icon"
+            >
+              {selectedIcon}
+            </div>
 
-      <div className="field">
-        <Text as="label" size="2" weight="bold" mb="1">
-          Content
-        </Text>
-        <textarea
-          className="textarea"
-          placeholder="Write your note..."
-          value={content}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-            setContent(e.target.value)
-          }
-          rows={6}
-        />
-      </div>
+            {showIconPicker && (
+              <div className="icon-picker" style={{ marginBottom: '24px' }}>
+                {icons.map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    className={`icon-option ${selectedIcon === icon ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedIcon(icon);
+                      setShowIconPicker(false);
+                    }}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            )}
 
-      <div className="button-group">
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={onCancel}
-          disabled={waiting}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={create}
-          disabled={waiting || !title.trim()}
-        >
-          {waiting ? (
-            <>
-              <span className="spinner"></span>
-              Creating...
-            </>
-          ) : (
-            'Create Note'
-          )}
-        </button>
+            <div className="form-group">
+              <input
+                className="page-title"
+                style={{ fontSize: '32px' }}
+                placeholder="Untitled"
+                value={title}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setTitle(e.target.value)
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <textarea
+                className="textarea"
+                placeholder="Write something..."
+                value={content}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                  setContent(e.target.value)
+                }
+                rows={8}
+              />
+            </div>
+          </div>
+
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onCancel}
+              disabled={waiting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={create}
+              disabled={waiting || !title.trim()}
+            >
+              {waiting ? (
+                <>
+                  <span className="spinner"></span>
+                  Creating...
+                </>
+              ) : (
+                'Create'
+              )}
+            </button>
+          </div>
+        </div>
       </div>
-    </Box>
+    </div>
   );
 }
