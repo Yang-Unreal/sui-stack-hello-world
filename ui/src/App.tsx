@@ -5,33 +5,33 @@ import {
   useDAppKit,
 } from '@mysten/dapp-kit-react';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import {
-  Home,
-  Search,
-  Clock,
-  Star,
-  FileText,
-  Plus,
-  Trash2,
-  ChevronLeft,
-  Wallet,
   ArrowLeft,
+  ChevronLeft,
+  Clock,
+  FileText,
+  Home,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+  Wallet,
 } from 'lucide-react';
-import { CreateNote } from './CreateNote';
-import { NoteCard } from './NoteCard';
-import { useNetworkVariable } from './networkConfig';
+import { useState } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { CreateNote } from './CreateNote';
+import { NoteCard } from './NoteCard';
+import { useNetworkVariable } from './networkConfig';
 
 interface NoteData {
   id: string;
@@ -99,8 +99,9 @@ function Sidebar({
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-0.5">
-          <div
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer transition-all duration-150 ${
+          <button
+            type="button"
+            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-all duration-150 w-full ${
               selectedNote === null
                 ? 'bg-accent text-accent-foreground font-medium'
                 : 'hover:bg-muted text-muted-foreground'
@@ -109,19 +110,31 @@ function Sidebar({
           >
             <Home className="w-4 h-4 shrink-0" />
             <span>Home</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm hover:bg-muted text-muted-foreground transition-all duration-150 w-full"
+            aria-disabled="true"
+          >
             <Search className="w-4 h-4 shrink-0" />
             <span>Search</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm hover:bg-muted text-muted-foreground transition-all duration-150 w-full"
+            aria-disabled="true"
+          >
             <Clock className="w-4 h-4 shrink-0" />
             <span>Recently Updated</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm hover:bg-muted text-muted-foreground transition-all duration-150 w-full"
+            aria-disabled="true"
+          >
             <Star className="w-4 h-4 shrink-0" />
             <span>Favorites</span>
-          </div>
+          </button>
         </div>
 
         <div className="p-2 border-t border-border mt-2">
@@ -142,9 +155,10 @@ function Sidebar({
 
           <div className="space-y-0.5">
             {notes.map((note) => (
-              <div
+              <button
                 key={note.id}
-                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer transition-all duration-150 ${
+                type="button"
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-all duration-150 w-full ${
                   selectedNote?.id === note.id
                     ? 'bg-accent text-accent-foreground font-medium'
                     : 'hover:bg-muted text-foreground'
@@ -153,7 +167,7 @@ function Sidebar({
               >
                 <span className="text-base shrink-0">{note.icon || '📄'}</span>
                 <span className="truncate">{note.title || 'Untitled'}</span>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -165,10 +179,14 @@ function Sidebar({
         </div>
 
         <div className="p-2 border-t border-border mt-2">
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer hover:bg-muted text-muted-foreground transition-all duration-150">
+          <button
+            type="button"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm hover:bg-muted text-muted-foreground transition-all duration-150 w-full"
+            aria-disabled="true"
+          >
             <Trash2 className="w-4 h-4" />
             <span>Trash</span>
-          </div>
+          </button>
         </div>
       </ScrollArea>
     </aside>
@@ -193,7 +211,12 @@ function TopBar({
     <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card">
       <div className="flex items-center gap-3">
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} className="cursor-pointer">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="cursor-pointer"
+          >
             <ArrowLeft className="w-4 h-4" />
           </Button>
         )}
@@ -201,7 +224,9 @@ function TopBar({
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Pages</span>
             <ChevronLeft className="w-3 h-3 text-muted-foreground -rotate-90" />
-            <span className="font-medium truncate max-w-[200px]">{note.title || 'Untitled'}</span>
+            <span className="font-medium truncate max-w-[200px]">
+              {note.title || 'Untitled'}
+            </span>
           </div>
         ) : (
           <span className="font-medium">Home</span>
@@ -222,7 +247,11 @@ function TopBar({
         {currentAccount ? (
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <Button variant="ghost" size="sm" className="gap-2 cursor-pointer hover:bg-muted">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 cursor-pointer hover:bg-muted"
+              >
                 <Avatar className="w-7 h-7">
                   <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                     {currentAccount.address.slice(0, 2)}
@@ -269,7 +298,9 @@ function HomeView({
             <span className="text-4xl">📝</span>
           </div>
           <div>
-            <h1 className="text-3xl font-semibold mb-1.5">Welcome to Sui Notes</h1>
+            <h1 className="text-3xl font-semibold mb-1.5">
+              Welcome to Sui Notes
+            </h1>
             <p className="text-muted-foreground text-lg">
               Your notes, stored securely on the Sui blockchain.
             </p>
@@ -287,7 +318,11 @@ function HomeView({
                 Create your first note to get started with your personal
                 knowledge base stored on the blockchain.
               </p>
-              <Button onClick={onNewNote} size="lg" className="gap-2 cursor-pointer">
+              <Button
+                onClick={onNewNote}
+                size="lg"
+                className="gap-2 cursor-pointer"
+              >
                 <Plus className="w-5 h-5" />
                 New Page
               </Button>
@@ -299,7 +334,12 @@ function HomeView({
               <h2 className="text-lg font-semibold text-muted-foreground">
                 Recent Pages
               </h2>
-              <Button variant="outline" size="sm" onClick={onNewNote} className="gap-2 cursor-pointer">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNewNote}
+                className="gap-2 cursor-pointer"
+              >
                 <Plus className="w-4 h-4" />
                 New Page
               </Button>
@@ -307,27 +347,26 @@ function HomeView({
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {notes.map((note) => (
-                <Card
+                <button
                   key={note.id}
-                  className="cursor-pointer hover:border-primary hover:shadow-md transition-all duration-200 group"
+                  type="button"
+                  className="rounded-xl border bg-card p-5 text-card-foreground ring-1 ring-foreground/10 hover:border-primary hover:shadow-md transition-all duration-200 group text-left w-full"
                   onClick={() => onSelectNote(note)}
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <span className="text-3xl group-hover:scale-110 transition-transform duration-200">
-                        {note.icon || '📄'}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate mb-1.5 text-foreground">
-                          {note.title || 'Untitled'}
-                        </h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {note.content.slice(0, 100) || 'Empty note'}
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-4">
+                    <span className="text-3xl group-hover:scale-110 transition-transform duration-200">
+                      {note.icon || '📄'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate mb-1.5 text-foreground">
+                        {note.title || 'Untitled'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {note.content.slice(0, 100) || 'Empty note'}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </button>
               ))}
             </div>
           </div>
@@ -455,7 +494,9 @@ function App() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="py-6">
-            <div className="text-destructive text-sm">Error: {error.message}</div>
+            <div className="text-destructive text-sm">
+              Error: {error.message}
+            </div>
           </CardContent>
         </Card>
       </div>

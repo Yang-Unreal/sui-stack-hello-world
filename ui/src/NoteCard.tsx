@@ -1,6 +1,9 @@
 import { useCurrentClient, useDAppKit } from '@mysten/dapp-kit-react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import katex from 'katex';
+import { FileText, Pencil, Save, Trash2 } from 'lucide-react';
+import mermaid from 'mermaid';
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -8,17 +11,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useNetworkVariable } from './networkConfig';
-import katex from 'katex';
-import mermaid from 'mermaid';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Pencil,
-  Trash2,
-  Save,
-  FileText,
-} from 'lucide-react';
+import { useNetworkVariable } from './networkConfig';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -40,7 +35,9 @@ function MermaidDiagram({ code }: { code: string }) {
         }
       } catch (e) {
         if (containerRef.current) {
-          containerRef.current.innerHTML = `<pre className="notion-code"><code>${code}</code></pre><p style="color:red;font-size:12px">Mermaid error: ${e instanceof Error ? e.message : 'Invalid diagram syntax'}</p>`;
+          const errorMsg =
+            e instanceof Error ? e.message : 'Invalid diagram syntax';
+          containerRef.current.innerHTML = `<pre class="notion-code"><code>${code}</code></pre><p style="color:red;font-size:12px">Mermaid error: ${errorMsg}</p>`;
         }
       }
     };
@@ -48,6 +45,27 @@ function MermaidDiagram({ code }: { code: string }) {
   }, [code]);
 
   return <div ref={containerRef} className="notion-mermaid" />;
+}
+
+function KatexExpr({
+  content,
+  displayMode,
+}: {
+  content: string;
+  displayMode: boolean;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (ref.current) {
+      katex.render(content, ref.current, { displayMode, throwOnError: false });
+    }
+  }, [content, displayMode]);
+
+  return displayMode ? (
+    <div className="notion-formula" ref={ref as any} />
+  ) : (
+    <span ref={ref} />
+  );
 }
 
 interface NoteData {
@@ -108,7 +126,8 @@ const SLASH_COMMANDS: SlashCommand[] = [
     name: 'Table',
     icon: '📊',
     description: 'Insert table',
-    prefix: '| Header1 | Header2 | Header3 |\n| :--- | :---: | ---: |\n| Cell1 | Cell2 | Cell3 |\n',
+    prefix:
+      '| Header1 | Header2 | Header3 |\n| :--- | :---: | ---: |\n| Cell1 | Cell2 | Cell3 |\n',
   },
   {
     id: 'image',
@@ -237,27 +256,128 @@ export function NoteCard({
     let keyIndex = 0;
 
     const patterns = [
-      { regex: /^\$\$(.+)\$\$/, render: (content: string) => {
-        try {
-          return <div key={keyIndex++} dangerouslySetInnerHTML={{ __html: katex.renderToString(content, { displayMode: true, throwOnError: false }) }} />;
-        } catch { return <code key={keyIndex++}>${content}$</code>; }
-      } },
-      { regex: /^\$(.+)\$/, render: (content: string) => {
-        try {
-          return <span key={keyIndex++} dangerouslySetInnerHTML={{ __html: katex.renderToString(content, { displayMode: false, throwOnError: false }) }} />;
-        } catch { return <code key={keyIndex++}>${content}$</code>; }
-      } },
-      { regex: /^\*\*\*\*(.+?)\*\*\*\*/, render: (content: string) => <strong key={keyIndex++}><em>{content}</em></strong> },
-      { regex: /^\*\*(.+?)\*\*/, render: (content: string) => <strong key={keyIndex++} style={{ fontWeight: 600 }}>{content}</strong> },
-      { regex: /^__(.+?)__/, render: (content: string) => <strong key={keyIndex++}>{content}</strong> },
-      { regex: /^\*(.+?)\*/, render: (content: string) => <em key={keyIndex++}>{content}</em> },
-      { regex: /^_(.+?)_/, render: (content: string) => <em key={keyIndex++}>{content}</em> },
-      { regex: /^\+\+(.+?)\+\+/, render: (content: string) => <mark key={keyIndex++} style={{ backgroundColor: '#fef3c7', padding: '0 2px', borderRadius: '2px' }}>{content}</mark> },
-      { regex: /^\=\=(.+?)\=\=/, render: (content: string) => <mark key={keyIndex++} style={{ backgroundColor: '#fef3c7', padding: '0 2px', borderRadius: '2px' }}>{content}</mark> },
-      { regex: /^~~(.+?)~~/, render: (content: string) => <del key={keyIndex++}>{content}</del> },
-      { regex: /^`([^`]+)`/, render: (content: string) => <code key={keyIndex++} style={{ backgroundColor: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '3px', fontFamily: 'monospace', fontSize: '13px' }}>{content}</code> },
-      { regex: /^\!\[([^\]]*)\]\(([^)]+)\)/, render: (alt: string, url: string) => <img key={keyIndex++} src={url} alt={alt} style={{ maxWidth: '100%', borderRadius: '4px', margin: '8px 0' }} /> },
-      { regex: /^\[([^\]]+)\]\(([^)]+)\)/, render: (text: string, url: string) => <a key={keyIndex++} href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#2eaadc', textDecoration: 'none', borderBottom: '1px solid #2eaadc' }}>{text}</a> },
+      {
+        regex: /^\$\$(.+)\$\$/,
+        render: (content: string) => (
+          <KatexExpr key={keyIndex++} content={content} displayMode={true} />
+        ),
+      },
+      {
+        regex: /^\$(.+)\$/,
+        render: (content: string) => (
+          <KatexExpr key={keyIndex++} content={content} displayMode={false} />
+        ),
+      },
+      {
+        regex: /^\*\*\*\*(.+?)\*\*\*\*/,
+        render: (content: string) => (
+          <strong key={keyIndex++}>
+            <em>{content}</em>
+          </strong>
+        ),
+      },
+      {
+        regex: /^\*\*(.+?)\*\*/,
+        render: (content: string) => (
+          <strong key={keyIndex++} style={{ fontWeight: 600 }}>
+            {content}
+          </strong>
+        ),
+      },
+      {
+        regex: /^__(.+?)__/,
+        render: (content: string) => (
+          <strong key={keyIndex++}>{content}</strong>
+        ),
+      },
+      {
+        regex: /^\*(.+?)\*/,
+        render: (content: string) => <em key={keyIndex++}>{content}</em>,
+      },
+      {
+        regex: /^_(.+?)_/,
+        render: (content: string) => <em key={keyIndex++}>{content}</em>,
+      },
+      {
+        regex: /^\+\+(.+?)\+\+/,
+        render: (content: string) => (
+          <mark
+            key={keyIndex++}
+            style={{
+              backgroundColor: '#fef3c7',
+              padding: '0 2px',
+              borderRadius: '2px',
+            }}
+          >
+            {content}
+          </mark>
+        ),
+      },
+      {
+        regex: /^==(.+?)==/,
+        render: (content: string) => (
+          <mark
+            key={keyIndex++}
+            style={{
+              backgroundColor: '#fef3c7',
+              padding: '0 2px',
+              borderRadius: '2px',
+            }}
+          >
+            {content}
+          </mark>
+        ),
+      },
+      {
+        regex: /^~~(.+?)~~/,
+        render: (content: string) => <del key={keyIndex++}>{content}</del>,
+      },
+      {
+        regex: /^`([^`]+)`/,
+        render: (content: string) => (
+          <code
+            key={keyIndex++}
+            style={{
+              backgroundColor: 'var(--bg-secondary)',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              fontFamily: 'monospace',
+              fontSize: '13px',
+            }}
+          >
+            {content}
+          </code>
+        ),
+      },
+      {
+        regex: /^!\[([^\]]*)\]\(([^)]+)\)/,
+        render: (alt: string, url: string) => (
+          <img
+            key={keyIndex++}
+            src={url}
+            alt={alt}
+            style={{ maxWidth: '100%', borderRadius: '4px', margin: '8px 0' }}
+          />
+        ),
+      },
+      {
+        regex: /^\[([^\]]+)\]\(([^)]+)\)/,
+        render: (text: string, url: string) => (
+          <a
+            key={keyIndex++}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: '#2eaadc',
+              textDecoration: 'none',
+              borderBottom: '1px solid #2eaadc',
+            }}
+          >
+            {text}
+          </a>
+        ),
+      },
     ];
 
     while (remaining.length > 0) {
@@ -275,7 +395,7 @@ export function NoteCard({
       }
 
       if (!matched) {
-        const nextSpecial = remaining.search(/[*_`=\[+\$]/);
+        const nextSpecial = remaining.search(/[*_`=[+$]/);
         if (nextSpecial === -1) {
           parts.push(remaining);
           break;
@@ -292,7 +412,10 @@ export function NoteCard({
     return parts;
   };
 
-  const renderContent = (content: string, onToggleTodo?: (index: number) => void) => {
+  const renderContent = (
+    content: string,
+    onToggleTodo?: (index: number) => void
+  ) => {
     if (!content) return null;
 
     const blocks: React.ReactNode[] = [];
@@ -311,7 +434,7 @@ export function NoteCard({
 
       if (trimmed.startsWith('# ') && !trimmed.startsWith('##')) {
         blocks.push(
-          <h1 key={blocks.length} className="notion-h1">
+          <h1 key={`h1-${i}-${trimmed.slice(0, 10)}`} className="notion-h1">
             {trimmed.slice(2)}
           </h1>
         );
@@ -321,7 +444,7 @@ export function NoteCard({
 
       if (trimmed.startsWith('## ') && !trimmed.startsWith('###')) {
         blocks.push(
-          <h2 key={blocks.length} className="notion-h2">
+          <h2 key={`h2-${i}-${trimmed.slice(0, 10)}`} className="notion-h2">
             {trimmed.slice(3)}
           </h2>
         );
@@ -331,7 +454,7 @@ export function NoteCard({
 
       if (trimmed.startsWith('### ')) {
         blocks.push(
-          <h3 key={blocks.length} className="notion-h3">
+          <h3 key={`h3-${i}-${trimmed.slice(0, 10)}`} className="notion-h3">
             {trimmed.slice(4)}
           </h3>
         );
@@ -340,7 +463,7 @@ export function NoteCard({
       }
 
       if (trimmed === '---') {
-        blocks.push(<hr key={blocks.length} className="notion-divider" />);
+        blocks.push(<hr key={`hr-${i}`} className="notion-divider" />);
         i++;
         continue;
       }
@@ -350,18 +473,11 @@ export function NoteCard({
         if (todoMatch) {
           const done = todoMatch[1].toLowerCase() === 'x';
           blocks.push(
-            <div
-              key={blocks.length}
-              className="notion-todo"
+            <button
+              key={`todo-${i}-${todoMatch[2].slice(0, 10)}`}
+              type="button"
+              className="notion-todo w-full text-left"
               onClick={() => onToggleTodo?.(todoIndex)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  onToggleTodo?.(todoIndex);
-                }
-              }}
-              style={{ cursor: 'pointer' }}
             >
               <span className={`notion-todo-checkbox ${done ? 'checked' : ''}`}>
                 {done ? '✓' : '○'}
@@ -369,7 +485,7 @@ export function NoteCard({
               <span className={`notion-todo-text ${done ? 'done' : ''}`}>
                 {todoMatch[2]}
               </span>
-            </div>
+            </button>
           );
           todoIndex++;
           i++;
@@ -379,14 +495,18 @@ export function NoteCard({
 
       if (trimmed.startsWith('- ') && !/^-\s*\[/.test(trimmed)) {
         const items: string[] = [];
-        while (i < lines.length && lines[i].trim().startsWith('- ') && !/^-\s*\[/.test(lines[i].trim())) {
+        while (
+          i < lines.length &&
+          lines[i].trim().startsWith('- ') &&
+          !/^-\s*\[/.test(lines[i].trim())
+        ) {
           items.push(lines[i].trim().slice(2));
           i++;
         }
         blocks.push(
-          <ul key={blocks.length} className="notion-ul">
-            {items.map((text, idx) => (
-              <li key={idx} className="notion-li">
+          <ul key={`ul-${i}`} className="notion-ul">
+            {items.map((text) => (
+              <li key={text} className="notion-li">
                 {parseInlineContent(text)}
               </li>
             ))}
@@ -402,9 +522,9 @@ export function NoteCard({
           i++;
         }
         blocks.push(
-          <ol key={blocks.length} className="notion-ol">
-            {items.map((text, idx) => (
-              <li key={idx} className="notion-li">
+          <ol key={`ol-${i}`} className="notion-ol">
+            {items.map((text) => (
+              <li key={text} className="notion-li">
                 {parseInlineContent(text)}
               </li>
             ))}
@@ -420,9 +540,9 @@ export function NoteCard({
           i++;
         }
         blocks.push(
-          <blockquote key={blocks.length} className="notion-quote">
-            {quotes.map((q, idx) => (
-              <p key={idx} className="notion-p">
+          <blockquote key={`quote-${i}`} className="notion-quote">
+            {quotes.map((q) => (
+              <p key={q} className="notion-p">
                 {parseInlineContent(q)}
               </p>
             ))}
@@ -440,7 +560,7 @@ export function NoteCard({
         }
         const code = codeLines.join('\n');
         blocks.push(
-          <div key={blocks.length} className="notion-mermaid-container">
+          <div key={`mermaid-${i}`} className="notion-mermaid-container">
             <MermaidDiagram code={code} />
           </div>
         );
@@ -456,7 +576,7 @@ export function NoteCard({
           i++;
         }
         blocks.push(
-          <pre key={blocks.length} className="notion-code">
+          <pre key={`code-${i}`} className="notion-code">
             <code>{codeLines.join('\n')}</code>
           </pre>
         );
@@ -467,32 +587,40 @@ export function NoteCard({
       if (trimmed.startsWith('|')) {
         const tableRows: string[][] = [];
         while (i < lines.length && lines[i].trim().startsWith('|')) {
-          const row = lines[i].trim()
+          const row = lines[i]
+            .trim()
             .split('|')
-            .filter(cell => cell !== '');
+            .filter((cell) => cell !== '');
           tableRows.push(row);
           i++;
         }
-        if (tableRows.length > 1 && tableRows[1].every(cell => /^[-:]+$/.test(cell))) {
+        if (
+          tableRows.length > 1 &&
+          tableRows[1].every((cell) => /^[-:]+$/.test(cell))
+        ) {
           tableRows.splice(1, 1);
         }
         if (tableRows.length > 0) {
           const headers = tableRows[0];
           const dataRows = tableRows.slice(1);
           blocks.push(
-            <table key={blocks.length} className="notion-table">
+            <table key={`table-${i}`} className="notion-table">
               <thead>
                 <tr>
-                  {headers.map((header, idx) => (
-                    <th key={idx} className="notion-th">{header}</th>
+                  {headers.map((header) => (
+                    <th key={header} className="notion-th">
+                      {header}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {dataRows.map((row, rowIdx) => (
-                  <tr key={rowIdx}>
-                    {row.map((cell, cellIdx) => (
-                      <td key={cellIdx} className="notion-td">{cell}</td>
+                {dataRows.map((row) => (
+                  <tr key={row.join('-')}>
+                    {row.map((cell) => (
+                      <td key={cell} className="notion-td">
+                        {cell}
+                      </td>
                     ))}
                   </tr>
                 ))}
@@ -503,18 +631,20 @@ export function NoteCard({
         continue;
       }
 
-      if (trimmed.startsWith('$$') && trimmed.endsWith('$$') && trimmed.length > 4) {
+      if (
+        trimmed.startsWith('$$') &&
+        trimmed.endsWith('$$') &&
+        trimmed.length > 4
+      ) {
         const formula = trimmed.slice(2, -2);
         if (formula) {
-          try {
-            blocks.push(
-              <div key={blocks.length} className="notion-formula" dangerouslySetInnerHTML={{ __html: katex.renderToString(formula, { displayMode: true, throwOnError: false }) }} />
-            );
-          } catch {
-            blocks.push(
-              <pre key={blocks.length} className="notion-code">$${formula}$$</pre>
-            );
-          }
+          blocks.push(
+            <KatexExpr
+              key={`formula-${i}`}
+              content={formula}
+              displayMode={true}
+            />
+          );
         }
         i++;
         continue;
@@ -534,15 +664,13 @@ export function NoteCard({
         }
         if (formulaLines.length > 0) {
           const formula = formulaLines.join('\n');
-          try {
-            blocks.push(
-              <div key={blocks.length} className="notion-formula" dangerouslySetInnerHTML={{ __html: katex.renderToString(formula, { displayMode: true, throwOnError: false }) }} />
-            );
-          } catch {
-            blocks.push(
-              <pre key={blocks.length} className="notion-code">$${formula}$$</pre>
-            );
-          }
+          blocks.push(
+            <KatexExpr
+              key={`formula-block-${i}`}
+              content={formula}
+              displayMode={true}
+            />
+          );
         }
         continue;
       }
@@ -558,7 +686,17 @@ export function NoteCard({
           }
         }
         if (l === '$$') break;
-        if (l.startsWith('# ') || l.startsWith('## ') || l.startsWith('### ') || l === '---' || l.startsWith('- ') || /^\d+\.\s/.test(l) || l.startsWith('> ') || l.startsWith('```') || l.startsWith('|')) {
+        if (
+          l.startsWith('# ') ||
+          l.startsWith('## ') ||
+          l.startsWith('### ') ||
+          l === '---' ||
+          l.startsWith('- ') ||
+          /^\d+\.\s/.test(l) ||
+          l.startsWith('> ') ||
+          l.startsWith('```') ||
+          l.startsWith('|')
+        ) {
           break;
         }
         paraLines.push(l);
@@ -568,7 +706,7 @@ export function NoteCard({
         const joinedText = paraLines.join('\n');
         const inlineParts = parseInlineContent(joinedText);
         blocks.push(
-          <p key={blocks.length} className="notion-p">
+          <p key={`p-${i}`} className="notion-p">
             {inlineParts}
           </p>
         );
@@ -583,7 +721,7 @@ export function NoteCard({
     setEditContent(freshContent);
     setSelectedIcon(note.icon || '📄');
     setIsEditing(false);
-  }, [note.id, freshTitle, freshContent, note.icon]);
+  }, [freshTitle, freshContent, note.icon]);
 
   const handleStartEdit = () => {
     setEditTitle(freshTitle);
@@ -622,7 +760,10 @@ export function NoteCard({
       const char = textBeforeCursor[i];
       if (char === '/' && (i === 0 || textBeforeCursor[i - 1] !== '\\')) {
         const afterSlash = textBeforeCursor.slice(i);
-        if (!afterSlash.match(/^\/[^[(]*\[/) && !afterSlash.match(/^\/[^(]*\(/)) {
+        if (
+          !afterSlash.match(/^\/[^[(]*\[/) &&
+          !afterSlash.match(/^\/[^(]*\(/)
+        ) {
           lastSlash = i;
           break;
         }
@@ -864,7 +1005,9 @@ export function NoteCard({
               </Button>
               <Button
                 onClick={saveAllChanges}
-                disabled={waiting || !editTitle.trim() || (!hasChanges && !isEditing)}
+                disabled={
+                  waiting || !editTitle.trim() || (!hasChanges && !isEditing)
+                }
                 className="gap-2"
               >
                 <Save className="w-4 h-4" />
@@ -884,9 +1027,14 @@ export function NoteCard({
               </button>
             </div>
 
-            <h1 className="text-4xl font-semibold text-center mb-8 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={handleStartEdit}>
-              {freshTitle}
+            <h1 className="text-center mb-8">
+              <button
+                type="button"
+                className="text-4xl font-semibold cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+                onClick={handleStartEdit}
+              >
+                {freshTitle}
+              </button>
             </h1>
 
             <div className="flex items-center gap-3 text-sm text-muted-foreground mb-8 pb-6 border-b">
@@ -900,14 +1048,15 @@ export function NoteCard({
               {freshContent ? (
                 renderContent(freshContent, toggleTodo)
               ) : (
-                <div 
-                  className="text-center py-12 cursor-pointer hover:bg-muted/50 rounded-lg transition-colors -mx-4 px-4"
+                <button
+                  type="button"
+                  className="w-full text-center py-12 cursor-pointer hover:bg-muted/50 rounded-lg transition-colors -mx-4 px-4 bg-transparent border-none"
                   onClick={handleStartEdit}
                 >
                   <p className="text-muted-foreground">
                     Click to add content...
                   </p>
-                </div>
+                </button>
               )}
             </div>
 

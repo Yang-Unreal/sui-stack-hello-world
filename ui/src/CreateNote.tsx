@@ -1,13 +1,13 @@
 import { useCurrentAccount, useDAppKit } from '@mysten/dapp-kit-react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useMutation } from '@tanstack/react-query';
-import { type ChangeEvent, useState } from 'react';
 import { X } from 'lucide-react';
-import { useNetworkVariable } from './networkConfig';
+import { type ChangeEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNetworkVariable } from './networkConfig';
 
 export function CreateNote({
   onCreated,
@@ -68,13 +68,14 @@ export function CreateNote({
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-6">
-              <div
-                className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-3xl cursor-pointer hover:bg-muted/80 transition-colors"
+              <button
+                type="button"
+                className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-3xl hover:bg-muted/80 transition-colors"
                 onClick={() => setShowIconPicker(!showIconPicker)}
                 title="Click to change icon"
               >
                 {selectedIcon}
-              </div>
+              </button>
 
               {showIconPicker && (
                 <div className="grid grid-cols-8 gap-2 p-3 bg-muted rounded-lg">
