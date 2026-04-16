@@ -587,18 +587,16 @@ a,
 
 .notion-table th,
 .notion-table td {
-  border: 1px solid var(--border-light);
-  padding: 8px 12px;
-  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-medium);
 }
 
 .notion-table th {
-  background: var(--bg-secondary);
-  font-weight: 600;
-}
-
-.notion-table tr:nth-child(even) td {
-  background: var(--bg-secondary);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 14px;
+  border-bottom: 2px solid var(--text-tertiary);
+  background: transparent;
 }
 
 .notion-table tr:hover td {

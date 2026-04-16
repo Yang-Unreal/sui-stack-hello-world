@@ -509,13 +509,18 @@ export function NoteCard({
         }
         blocks.push(
           <ul key={`ul-${items.join('').slice(0, 20)}`} className="notion-ul">
-            {items.map((text) => {
-              return (
-                <li key={`li-${text}`} className="notion-li">
-                  {parseInlineContent(text)}
-                </li>
-              );
-            })}
+            {(() => {
+              const counts = new Map<string, number>();
+              return items.map((text) => {
+                const count = counts.get(text) || 0;
+                counts.set(text, count + 1);
+                return (
+                  <li key={`li-${text}-${count}`} className="notion-li">
+                    {parseInlineContent(text)}
+                  </li>
+                );
+              });
+            })()}
           </ul>
         );
         continue;
@@ -529,13 +534,18 @@ export function NoteCard({
         }
         blocks.push(
           <ol key={`ol-${items.join('').slice(0, 20)}`} className="notion-ol">
-            {items.map((text) => {
-              return (
-                <li key={`li-${text}`} className="notion-li">
-                  {parseInlineContent(text)}
-                </li>
-              );
-            })}
+            {(() => {
+              const counts = new Map<string, number>();
+              return items.map((text) => {
+                const count = counts.get(text) || 0;
+                counts.set(text, count + 1);
+                return (
+                  <li key={`li-${text}-${count}`} className="notion-li">
+                    {parseInlineContent(text)}
+                  </li>
+                );
+              });
+            })()}
           </ol>
         );
         continue;
@@ -598,40 +608,77 @@ export function NoteCard({
           const row = lines[i]
             .trim()
             .split('|')
+            .map((c) => c.trim())
             .filter((cell) => cell !== '');
           tableRows.push(row);
           i++;
         }
+
+        let alignments: ('left' | 'center' | 'right')[] = [];
         if (
           tableRows.length > 1 &&
-          tableRows[1].every((cell) => /^[-:]+$/.test(cell))
+          tableRows[1].every((cell) => /^:?[-]+:?$/.test(cell))
         ) {
+          alignments = tableRows[1].map((cell) => {
+            const hasLeft = cell.startsWith(':');
+            const hasRight = cell.endsWith(':');
+            if (hasLeft && hasRight) return 'center';
+            if (hasRight) return 'right';
+            return 'left';
+          });
           tableRows.splice(1, 1);
         }
+
         if (tableRows.length > 0) {
           const headers = tableRows[0];
           const dataRows = tableRows.slice(1);
           blocks.push(
             <table key={`table-${headers.join('')}`} className="notion-table">
               <thead>
-                <tr className="border-b border-border">
-                  {headers.map((header) => (
-                    <th key={`th-${header}`} className="notion-th">
-                      {header}
-                    </th>
-                  ))}
+                <tr>
+                  {(() => {
+                    const counts = new Map<string, number>();
+                    let colIdx = 0;
+                    return headers.map((header) => {
+                      const count = counts.get(header) || 0;
+                      counts.set(header, count + 1);
+                      const align = alignments[colIdx++] || 'left';
+                      return (
+                        <th
+                          key={`th-${header}-${count}`}
+                          className="notion-th"
+                          style={{ textAlign: align }}
+                        >
+                          {header}
+                        </th>
+                      );
+                    });
+                  })()}
                 </tr>
               </thead>
               <tbody>
-                {dataRows.map((row) => (
-                  <tr key={`row-${row.join('|')}`}>
-                    {row.map((cell) => (
-                      <td key={`cell-${cell}`} className="notion-td">
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                {dataRows.map((row) => {
+                  const cellCounts = new Map<string, number>();
+                  let colIdx = 0;
+                  return (
+                    <tr key={`row-${row.join('|')}`}>
+                      {row.map((cell) => {
+                        const count = cellCounts.get(cell) || 0;
+                        cellCounts.set(cell, count + 1);
+                        const align = alignments[colIdx++] || 'left';
+                        return (
+                          <td
+                            key={`cell-${cell}-${count}`}
+                            className="notion-td"
+                            style={{ textAlign: align }}
+                          >
+                            {cell}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           );
