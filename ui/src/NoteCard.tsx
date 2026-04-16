@@ -62,7 +62,11 @@ function KatexExpr({
   }, [content, displayMode]);
 
   return displayMode ? (
-    <div className="notion-formula" ref={ref as any} />
+    <span
+      className="notion-formula block w-full overflow-x-auto"
+      ref={ref}
+      style={{ display: 'block', margin: '1em 0' }}
+    />
   ) : (
     <span ref={ref} />
   );
@@ -434,7 +438,7 @@ export function NoteCard({
 
       if (trimmed.startsWith('# ') && !trimmed.startsWith('##')) {
         blocks.push(
-          <h1 key={`h1-${i}-${trimmed.slice(0, 10)}`} className="notion-h1">
+          <h1 key={`h1-${trimmed.slice(2, 22)}`} className="notion-h1">
             {trimmed.slice(2)}
           </h1>
         );
@@ -444,7 +448,7 @@ export function NoteCard({
 
       if (trimmed.startsWith('## ') && !trimmed.startsWith('###')) {
         blocks.push(
-          <h2 key={`h2-${i}-${trimmed.slice(0, 10)}`} className="notion-h2">
+          <h2 key={`h2-${trimmed.slice(3, 23)}`} className="notion-h2">
             {trimmed.slice(3)}
           </h2>
         );
@@ -454,7 +458,7 @@ export function NoteCard({
 
       if (trimmed.startsWith('### ')) {
         blocks.push(
-          <h3 key={`h3-${i}-${trimmed.slice(0, 10)}`} className="notion-h3">
+          <h3 key={`h3-${trimmed.slice(4, 24)}`} className="notion-h3">
             {trimmed.slice(4)}
           </h3>
         );
@@ -474,7 +478,7 @@ export function NoteCard({
           const done = todoMatch[1].toLowerCase() === 'x';
           blocks.push(
             <button
-              key={`todo-${i}-${todoMatch[2].slice(0, 10)}`}
+              key={`todo-${todoMatch[2].slice(0, 16)}`}
               type="button"
               className="notion-todo w-full text-left"
               onClick={() => onToggleTodo?.(todoIndex)}
@@ -504,12 +508,14 @@ export function NoteCard({
           i++;
         }
         blocks.push(
-          <ul key={`ul-${i}`} className="notion-ul">
-            {items.map((text) => (
-              <li key={text} className="notion-li">
-                {parseInlineContent(text)}
-              </li>
-            ))}
+          <ul key={`ul-${items.join('').slice(0, 20)}`} className="notion-ul">
+            {items.map((text) => {
+              return (
+                <li key={`li-${text}`} className="notion-li">
+                  {parseInlineContent(text)}
+                </li>
+              );
+            })}
           </ul>
         );
         continue;
@@ -522,12 +528,14 @@ export function NoteCard({
           i++;
         }
         blocks.push(
-          <ol key={`ol-${i}`} className="notion-ol">
-            {items.map((text) => (
-              <li key={text} className="notion-li">
-                {parseInlineContent(text)}
-              </li>
-            ))}
+          <ol key={`ol-${items.join('').slice(0, 20)}`} className="notion-ol">
+            {items.map((text) => {
+              return (
+                <li key={`li-${text}`} className="notion-li">
+                  {parseInlineContent(text)}
+                </li>
+              );
+            })}
           </ol>
         );
         continue;
@@ -604,11 +612,11 @@ export function NoteCard({
           const headers = tableRows[0];
           const dataRows = tableRows.slice(1);
           blocks.push(
-            <table key={`table-${i}`} className="notion-table">
+            <table key={`table-${headers.join('')}`} className="notion-table">
               <thead>
-                <tr>
+                <tr className="border-b border-border">
                   {headers.map((header) => (
-                    <th key={header} className="notion-th">
+                    <th key={`th-${header}`} className="notion-th">
                       {header}
                     </th>
                   ))}
@@ -616,9 +624,9 @@ export function NoteCard({
               </thead>
               <tbody>
                 {dataRows.map((row) => (
-                  <tr key={row.join('-')}>
+                  <tr key={`row-${row.join('|')}`}>
                     {row.map((cell) => (
-                      <td key={cell} className="notion-td">
+                      <td key={`cell-${cell}`} className="notion-td">
                         {cell}
                       </td>
                     ))}
@@ -640,7 +648,7 @@ export function NoteCard({
         if (formula) {
           blocks.push(
             <KatexExpr
-              key={`formula-${i}`}
+              key={`formula-${formula.slice(0, 20)}`}
               content={formula}
               displayMode={true}
             />
@@ -706,7 +714,7 @@ export function NoteCard({
         const joinedText = paraLines.join('\n');
         const inlineParts = parseInlineContent(joinedText);
         blocks.push(
-          <p key={`p-${i}`} className="notion-p">
+          <p key={`p-${joinedText.slice(0, 20)}`} className="notion-p">
             {inlineParts}
           </p>
         );

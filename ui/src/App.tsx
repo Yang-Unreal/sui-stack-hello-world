@@ -246,23 +246,25 @@ function TopBar({
 
         {currentAccount ? (
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-2 cursor-pointer hover:bg-muted"
-              >
-                <Avatar className="w-7 h-7">
-                  <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                    {currentAccount.address.slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-xs font-mono text-muted-foreground">
-                  {currentAccount.address.slice(0, 4)}...
-                  {currentAccount.address.slice(-4)}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 cursor-pointer hover:bg-muted"
+                >
+                  <Avatar className="w-7 h-7">
+                    <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                      {currentAccount.address.slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {currentAccount.address.slice(0, 4)}...
+                    {currentAccount.address.slice(-4)}
+                  </span>
+                </Button>
+              }
+            />
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
                 onClick={() => dAppKit.disconnectWallet()}
