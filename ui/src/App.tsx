@@ -523,33 +523,12 @@ function App() {
 
   if (!currentAccount) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex items-center justify-center p-4 overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary-rgb),0.05),transparent_50%)]"></div>
-        <Card className="w-full max-w-md border-none shadow-2xl bg-background/80 backdrop-blur-xl relative z-10 rounded-[2.5rem] overflow-hidden">
-          <div className="h-2 bg-linear-to-r from-primary to-accent-blue"></div>
-          <CardContent className="flex flex-col items-center justify-center py-20 px-10">
-            <div className="w-28 h-28 rounded-[2.5rem] bg-primary flex items-center justify-center text-6xl mb-10 shadow-2xl shadow-primary/40 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-              📝
-            </div>
-            <h1 className="text-4xl font-extrabold mb-4 text-center tracking-tight">
-              Sui Notes
-            </h1>
-            <p className="text-base text-muted-foreground text-center mb-10 max-w-xs leading-relaxed opacity-80">
-              Your decentralized brain. Connect your wallet to access your
-              private, immutable notes on Sui.
-            </p>
-            <div className="w-full flex justify-center scale-110">
-              <ConnectButton instance={dAppKit}>
-                <Button
-                  size="lg"
-                  className="rounded-full px-10 py-6 text-lg font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all bg-primary"
-                >
-                  Connect Wallet
-                </Button>
-              </ConnectButton>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <ConnectButton instance={dAppKit}>
+          <Button className="px-8 font-medium">
+            Connect Wallet
+          </Button>
+        </ConnectButton>
       </div>
     );
   }
