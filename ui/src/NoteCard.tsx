@@ -2,7 +2,15 @@ import { useCurrentClient, useDAppKit } from '@mysten/dapp-kit-react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import katex from 'katex';
-import { FileText, Pencil, Save, Trash2 } from 'lucide-react';
+import {
+  Clock,
+  FileText,
+  Loader2,
+  Pencil,
+  Plus,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import mermaid from 'mermaid';
 import {
   type ChangeEvent,
@@ -12,7 +20,13 @@ import {
   useState,
 } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { useNetworkVariable } from './networkConfig';
 
 mermaid.initialize({
@@ -218,7 +232,6 @@ export function NoteCard({
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('📄');
-  const [showIconPicker, setShowIconPicker] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [slashMenu, setSlashMenu] = useState<{
     show: boolean;
@@ -961,100 +974,121 @@ export function NoteCard({
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="h-full overflow-auto">
       <div className="max-w-4xl mx-auto px-12 pb-20 pt-12">
         {isEditing ? (
-          <div className="animate-in fade-in duration-200">
-            <div className="flex justify-center mb-6">
-              <button
-                type="button"
-                className="w-20 h-20 text-5xl rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center cursor-pointer transition-colors"
-                onClick={() => setShowIconPicker(!showIconPicker)}
-              >
-                {selectedIcon}
-              </button>
-            </div>
-
-            {showIconPicker && (
-              <div className="mb-6 p-4 bg-muted rounded-lg">
-                <div className="grid grid-cols-8 gap-2">
-                  {icons.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl cursor-pointer transition-colors ${
-                        selectedIcon === icon
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted-foreground/20'
-                      }`}
-                      onClick={() => {
-                        setSelectedIcon(icon);
-                        setShowIconPicker(false);
-                      }}
-                    >
-                      {icon}
-                    </button>
-                  ))}
-                </div>
+          <div className="animate-in fade-in duration-300">
+            <div className="relative group/title">
+              <div className="flex justify-center mb-8">
+                <Popover>
+                  <PopoverTrigger className="w-24 h-24 text-6xl rounded-[2rem] bg-muted/50 hover:bg-muted flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105 shadow-inner group-hover/title:shadow-primary/5">
+                    {selectedIcon}
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-80 p-3 rounded-2xl shadow-2xl border-border/50 backdrop-blur-xl bg-background/95"
+                    align="center"
+                  >
+                    <div className="grid grid-cols-5 gap-2">
+                      {icons.map((icon) => (
+                        <button
+                          key={icon}
+                          type="button"
+                          className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all duration-200',
+                            selectedIcon === icon
+                              ? 'bg-primary/10 text-primary scale-110 shadow-sm'
+                              : 'hover:bg-muted'
+                          )}
+                          onClick={() => {
+                            setSelectedIcon(icon);
+                            setHasChanges(true);
+                          }}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
-            )}
 
-            <input
-              className="w-full text-4xl font-semibold bg-transparent border-none outline-none mb-4"
-              value={editTitle}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                setEditTitle(e.target.value);
-                setHasChanges(true);
-              }}
-              placeholder="Untitled"
-            />
+              <input
+                className="w-full text-5xl font-black bg-transparent border-none outline-none mb-8 text-center placeholder:opacity-20 tracking-tight"
+                value={editTitle}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  setEditTitle(e.target.value);
+                  setHasChanges(true);
+                }}
+                placeholder="Untitled"
+              />
+            </div>
 
             <div className="relative">
               <Textarea
                 ref={textareaRef}
-                className="min-h-[400px] text-base leading-relaxed resize-y"
+                className="min-h-[500px] text-lg leading-relaxed resize-none border-none shadow-none focus-visible:ring-0 px-0 bg-transparent placeholder:opacity-30"
                 value={editContent}
                 onChange={handleContentChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Type '/' for commands..."
+                placeholder="Type '/' for magic..."
               />
 
               {slashMenu.show && filteredCommands.length > 0 && (
-                <div className="absolute left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-72 overflow-y-auto z-50">
-                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+                <div className="absolute left-0 top-12 w-72 bg-popover/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-2 text-[10px] font-bold text-muted-foreground border-b border-border/50 uppercase tracking-widest bg-muted/30">
                     Basic blocks
                   </div>
-                  {filteredCommands.map((cmd, index) => (
-                    <button
-                      key={cmd.id}
-                      type="button"
-                      className={`w-full flex items-center gap-3 px-3 py-2 text-left cursor-pointer transition-colors ${
-                        index === selectedCommandIndex
-                          ? 'bg-accent'
-                          : 'hover:bg-muted'
-                      }`}
-                      onClick={() => insertCommand(cmd)}
-                    >
-                      <span className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm">
-                        {cmd.icon}
-                      </span>
-                      <div>
-                        <div className="text-sm font-medium">{cmd.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {cmd.description}
+                  <div className="p-1">
+                    {filteredCommands.map((cmd, index) => (
+                      <button
+                        key={cmd.id}
+                        type="button"
+                        className={cn(
+                          'w-full flex items-center gap-3 px-3 py-2 text-left cursor-pointer transition-all rounded-xl',
+                          index === selectedCommandIndex
+                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]'
+                            : 'hover:bg-muted'
+                        )}
+                        onClick={() => insertCommand(cmd)}
+                      >
+                        <span
+                          className={cn(
+                            'w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm',
+                            index === selectedCommandIndex
+                              ? 'bg-white/20'
+                              : 'bg-muted'
+                          )}
+                        >
+                          {cmd.icon}
+                        </span>
+                        <div>
+                          <div className="text-sm font-bold leading-none mb-1">
+                            {cmd.name}
+                          </div>
+                          <div
+                            className={cn(
+                              'text-[10px] leading-none',
+                              index === selectedCommandIndex
+                                ? 'text-primary-foreground/70'
+                                : 'text-muted-foreground'
+                            )}
+                          >
+                            {cmd.description}
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-3 mt-6 pt-4 border-t">
+            <div className="fixed bottom-8 right-8 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-500">
               <Button
                 variant="outline"
                 onClick={handleCancelEdit}
                 disabled={waiting}
+                className="rounded-full px-6 shadow-sm bg-background/80 backdrop-blur-sm"
               >
                 Cancel
               </Button>
@@ -1063,72 +1097,87 @@ export function NoteCard({
                 disabled={
                   waiting || !editTitle.trim() || (!hasChanges && !isEditing)
                 }
-                className="gap-2"
+                className="rounded-full px-8 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all gap-2"
               >
-                <Save className="w-4 h-4" />
-                {waiting ? 'Saving...' : hasChanges ? 'Save Changes' : 'Save'}
+                {waiting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {waiting ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved'}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="animate-in fade-in duration-200">
-            <div className="flex justify-center mb-6">
+          <div className="animate-in fade-in duration-500">
+            <div className="flex justify-center mb-8">
               <button
                 type="button"
-                className="w-20 h-20 text-5xl rounded-xl cursor-pointer hover:bg-muted/50 flex items-center justify-center transition-colors"
+                className="w-24 h-24 text-6xl rounded-[2.5rem] cursor-pointer hover:bg-muted/50 flex items-center justify-center transition-all duration-500 hover:scale-110 shadow-sm"
                 onClick={handleStartEdit}
               >
                 {note.icon || '📄'}
               </button>
             </div>
 
-            <h1 className="text-center mb-8">
+            <h1 className="text-center mb-10">
               <button
                 type="button"
-                className="text-4xl font-semibold cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+                className="text-5xl font-black cursor-pointer hover:opacity-80 transition-all bg-transparent border-none p-0 tracking-tight"
                 onClick={handleStartEdit}
               >
                 {freshTitle}
               </button>
             </h1>
 
-            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-8 pb-6 border-b">
-              <FileText className="w-4 h-4" />
-              <span className="font-mono text-xs">
-                {note.id.slice(0, 8)}...{note.id.slice(-6)}
-              </span>
+            <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground mb-12 pb-8 border-b border-border/50">
+              <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full">
+                <FileText className="w-3.5 h-3.5" />
+                <span className="font-mono tracking-tighter">
+                  {note.id.slice(0, 12)}...
+                </span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full">
+                <Clock className="w-3.5 h-3.5" />
+                <span className="font-medium">Edited 2m ago</span>
+              </div>
             </div>
 
-            <div className="prose prose-neutral max-w-none">
+            <div className="prose prose-neutral max-w-none prose-headings:font-black prose-p:text-lg prose-p:leading-relaxed prose-pre:bg-muted prose-pre:rounded-2xl prose-pre:border-none">
               {freshContent ? (
-                renderContent(freshContent, toggleTodo)
+                <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
+                  {renderContent(freshContent, toggleTodo)}
+                </div>
               ) : (
                 <button
                   type="button"
-                  className="w-full text-center py-12 cursor-pointer hover:bg-muted/50 rounded-lg transition-colors -mx-4 px-4 bg-transparent border-none"
+                  className="w-full text-center py-24 cursor-pointer hover:bg-muted/30 border-2 border-dashed border-border/50 rounded-[2rem] transition-all group"
                   onClick={handleStartEdit}
                 >
-                  <p className="text-muted-foreground">
-                    Click to add content...
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <Plus className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground font-medium text-lg">
+                    Click to start your masterpiece...
                   </p>
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-3 mt-8 pt-6 border-t">
+            <div className="flex items-center justify-center gap-4 mt-20 pt-10 border-t border-border/50">
               <Button
                 variant="outline"
                 onClick={handleStartEdit}
-                className="gap-2"
+                className="rounded-full px-8 gap-2 hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all h-11"
               >
                 <Pencil className="w-4 h-4" />
-                Edit
+                Edit Page
               </Button>
               <Button
                 variant="ghost"
                 onClick={deleteNote}
                 disabled={waiting}
-                className="gap-2 text-muted-foreground hover:text-destructive"
+                className="rounded-full px-8 gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all h-11"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
