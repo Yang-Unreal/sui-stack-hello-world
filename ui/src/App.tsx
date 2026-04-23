@@ -24,14 +24,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -187,7 +179,6 @@ function Sidebar({
           )}
         </div>
       </ScrollArea>
-
     </aside>
   );
 }
@@ -260,51 +251,74 @@ function TopBar({
           </Button>
 
           {currentAccount ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="gap-3 pl-1 pr-3 py-1 h-9 rounded-full hover:bg-muted transition-all border border-border/50 flex items-center bg-transparent">
-                <Avatar className="w-7 h-7 border border-background shadow-sm">
+            <div className="relative">
+              <button
+                onClick={() => {
+                  const el = document.getElementById('wallet-dropdown');
+                  if (el)
+                    el.style.display =
+                      el.style.display === 'none' ? 'block' : 'none';
+                }}
+                className="gap-3 pl-1 pr-3 py-1 h-9 rounded-full hover:bg-muted transition-all border border-border/50 flex items-center bg-transparent cursor-pointer"
+              >
+                <Avatar className="w-7 h-7 border border-background shadow-sm pointer-events-none">
                   <AvatarFallback className="text-[10px] bg-primary text-primary-foreground font-bold flex items-center justify-center">
                     {currentAccount.address.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-start leading-none">
+                <div className="flex flex-col items-start leading-none pointer-events-none">
                   <span className="text-[10px] font-mono text-muted-foreground">
                     {currentAccount.address.slice(0, 6)}...
                   </span>
                 </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-56 mt-2 rounded-xl shadow-xl border-border/50 p-1.5"
+              </button>
+
+              <div
+                id="wallet-dropdown"
+                style={{ display: 'none' }}
+                className="absolute right-0 top-full mt-2 w-56 rounded-xl shadow-xl bg-popover border border-border/50 p-1.5 z-50"
               >
-                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Account
-                </DropdownMenuLabel>
-                <DropdownMenuItem className="rounded-lg p-2 gap-3">
+                </div>
+                <div className="rounded-lg p-2 gap-3 flex items-center">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <Wallet className="w-4 h-4 text-primary" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium">Sui Wallet</span>
+                    <span className="text-xs font-medium text-foreground">
+                      Sui Wallet
+                    </span>
                     <span className="text-[10px] text-muted-foreground font-mono truncate max-w-[140px]">
                       {currentAccount.address}
                     </span>
                   </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-1.5 opacity-50" />
-                <DropdownMenuItem
-                  onClick={() => dAppKit.disconnectWallet()}
-                  className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-lg p-2 cursor-pointer transition-colors"
+                </div>
+                <div className="h-px bg-border my-1.5 opacity-50" />
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('wallet-dropdown');
+                    if (el) el.style.display = 'none';
+                    dAppKit.disconnectWallet();
+                  }}
+                  className="w-full flex items-center text-destructive focus:bg-destructive/10 hover:bg-destructive/10 focus:text-destructive rounded-lg p-2 cursor-pointer transition-colors bg-transparent border-none text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center mr-3">
                     <Trash2 className="w-4 h-4" />
                   </div>
                   <span className="font-medium">Disconnect</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </button>
+              </div>
+            </div>
           ) : (
-            <ConnectButton />
+            <ConnectButton instance={dAppKit}>
+              <Button
+                variant="default"
+                className="rounded-full px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-9"
+              >
+                Connect Wallet
+              </Button>
+            </ConnectButton>
           )}
         </div>
       </div>
@@ -442,6 +456,7 @@ function App() {
   const [selectedNote, setSelectedNote] = useState<NoteData | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const dAppKit = useDAppKit();
 
   const client = useCurrentClient();
   const notePackageId = useNetworkVariable('notePackageId');
@@ -524,7 +539,14 @@ function App() {
               private, immutable notes on Sui.
             </p>
             <div className="w-full flex justify-center scale-110">
-              <ConnectButton />
+              <ConnectButton instance={dAppKit}>
+                <Button
+                  size="lg"
+                  className="rounded-full px-10 py-6 text-lg font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all bg-primary"
+                >
+                  Connect Wallet
+                </Button>
+              </ConnectButton>
             </div>
           </CardContent>
         </Card>
